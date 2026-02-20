@@ -58,6 +58,16 @@ export class GameCatalog {
       enabled: true
     },
     {
+      id: 'sudoku',
+      name: '数独',
+      description: '经典逻辑填数游戏，训练大脑',
+      icon: '🔢',
+      color: '#1976D2',
+      gradient: ['#E3F2FD', '#BBDEFB'],
+      page: 'pages/SudokuGame',
+      enabled: true
+    },
+    {
       id: 'snake',
       name: '贪吃蛇',
       description: '经典街机游戏，控制蛇吃食物成长',
