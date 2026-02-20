@@ -4,6 +4,7 @@
     "pages/DragonGame",
     "pages/SnakeGame",
     "pages/AnimalRestaurantGame",
-    "pages/FlappyBirdGame"
+    "pages/FlappyBirdGame",
+    "pages/JumpJumpGame"
   ]
 }

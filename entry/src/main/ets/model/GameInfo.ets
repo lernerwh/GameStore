@@ -38,6 +38,16 @@ export class GameCatalog {
       enabled: true
     },
     {
+      id: 'jumpjump',
+      name: '跳一跳',
+      description: '按住蓄力，松开跳跃到下一个方块',
+      icon: '🦘',
+      color: '#4CAF50',
+      gradient: ['#F5DEB3', '#DEB887'],
+      page: 'pages/JumpJumpGame',
+      enabled: true
+    },
+    {
       id: 'dragon',
       name: '召唤神龙',
       description: '探索海洋，从小生物进化成神龙',
