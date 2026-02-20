@@ -41,23 +41,23 @@ export class SudokuRenderer {
   }
 
   private drawHeader(canvas: CanvasRenderingContext2D, timer: string, mistakes: number, noteMode: boolean): void {
-    // 时间
+    // 时间 - 再放大一倍
     canvas.fillStyle = '#333333';
-    canvas.font = 'bold 20px sans-serif';
+    canvas.font = 'bold 48px sans-serif';
     canvas.textAlign = 'left';
-    canvas.fillText(`⏱ ${timer}`, 20, 40);
+    canvas.fillText(`⏱ ${timer}`, 10, 55);
 
-    // 错误数
+    // 错误数 - 再放大一倍
     canvas.fillStyle = '#F44336';
     canvas.textAlign = 'right';
-    canvas.fillText(`❌ ${mistakes}/3`, 340, 40);
+    canvas.fillText(`❌ ${mistakes}/3`, 350, 55);
 
-    // 笔记模式指示
+    // 笔记模式指示 - 再放大一倍
     if (noteMode) {
       canvas.fillStyle = '#4CAF50';
-      canvas.font = '16px sans-serif';
+      canvas.font = '36px sans-serif';
       canvas.textAlign = 'center';
-      canvas.fillText('📝 笔记模式', 180, 70);
+      canvas.fillText('📝 笔记', 180, 60);
     }
   }
 
@@ -145,14 +145,14 @@ export class SudokuRenderer {
         const cell = cells[i][j];
 
         if (cell.hasValue()) {
-          // 显示数字
-          canvas.font = 'bold 22px sans-serif';
+          // 显示数字 - 再放大一倍
+          canvas.font = 'bold 50px sans-serif';
           canvas.fillStyle = cell.fixed ? SudokuConstants.COLOR_FIXED : SudokuConstants.COLOR_USER;
-          canvas.fillText(cell.value.toString(), x, y);
+          canvas.fillText(cell.value.toString(), x, y + 2);
         } else if (cell.notes.size > 0) {
-          // 显示笔记
-          canvas.font = '10px sans-serif';
-          canvas.fillStyle = '#999999';
+          // 显示笔记 - 再放大一倍
+          canvas.font = '20px sans-serif';
+          canvas.fillStyle = '#666666';
           const noteSize = cellSize / 3;
           for (let n = 1; n <= 9; n++) {
             if (cell.notes.has(n)) {
@@ -160,7 +160,7 @@ export class SudokuRenderer {
               const noteCol = (n - 1) % 3;
               const noteX = startX + j * cellSize + noteCol * noteSize + noteSize / 2;
               const noteY = startY + i * cellSize + noteRow * noteSize + noteSize / 2;
-              canvas.fillText(n.toString(), noteX, noteY);
+              canvas.fillText(n.toString(), noteX, noteY + 2);
             }
           }
         }
@@ -169,9 +169,9 @@ export class SudokuRenderer {
   }
 
   private drawNumberPanel(canvas: CanvasRenderingContext2D, cells: SudokuCell[][]): void {
-    const startX = (this.canvasWidth - 9 * 36) / 2;
+    const startX = 2;
     const startY = SudokuConstants.NUMBER_PANEL_Y;
-    const size = 36;
+    const size = 39;
 
     // 统计已使用的数字数量
     const usedCount: Map<number, number> = new Map();
@@ -195,15 +195,15 @@ export class SudokuRenderer {
       // 按钮背景
       canvas.fillStyle = completed ? '#CCCCCC' : SudokuConstants.COLOR_NUMBER_BTN;
       canvas.beginPath();
-      canvas.roundRect(x + 2, y, size - 4, size, 8);
+      canvas.roundRect(x + 1, y, size - 2, size, 8);
       canvas.fill();
 
-      // 数字
+      // 数字 - 再放大一倍
       canvas.fillStyle = '#FFFFFF';
-      canvas.font = 'bold 22px sans-serif';
+      canvas.font = 'bold 48px sans-serif';
       canvas.textAlign = 'center';
       canvas.textBaseline = 'middle';
-      canvas.fillText(i.toString(), x + size / 2, y + size / 2);
+      canvas.fillText(i.toString(), x + size / 2, y + size / 2 + 2);
     }
   }
 
@@ -212,13 +212,13 @@ export class SudokuRenderer {
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     canvas.fillStyle = '#FFD700';
-    canvas.font = 'bold 36px sans-serif';
+    canvas.font = 'bold 40px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
     canvas.fillText('🎉 恭喜完成！', this.canvasWidth / 2, this.canvasHeight / 2 - 30);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = '18px sans-serif';
+    canvas.font = '24px sans-serif';
     canvas.fillText('点击返回', this.canvasWidth / 2, this.canvasHeight / 2 + 30);
   }
 
@@ -245,9 +245,9 @@ export class SudokuRenderer {
    * 获取点击位置对应的数字按钮
    */
   static getNumberFromPosition(x: number, y: number): number {
-    const startX = (SudokuConstants.CANVAS_WIDTH - 9 * 36) / 2;
+    const startX = 2;
     const startY = SudokuConstants.NUMBER_PANEL_Y;
-    const size = 36;
+    const size = 39;
 
     if (y >= startY && y < startY + size) {
       const num = Math.floor((x - startX) / size) + 1;

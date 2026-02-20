@@ -4,17 +4,23 @@
 export class SudokuConstants {
   // 画布尺寸
   static readonly CANVAS_WIDTH: number = 360;
-  static readonly CANVAS_HEIGHT: number = 640;
+  static readonly CANVAS_HEIGHT: number = 700;
 
   // 数独网格
   static readonly GRID_SIZE: number = 9;
   static readonly CELL_SIZE: number = 38;
   static readonly GRID_PADDING: number = 10;
   static readonly GRID_START_X: number = (360 - 9 * 38) / 2;
-  static readonly GRID_START_Y: number = 100;
+  static readonly GRID_START_Y: number = 80;
+
+  // 字体大小
+  static readonly NUMBER_FONT_SIZE: number = 28;
+  static readonly NOTE_FONT_SIZE: number = 12;
+  static readonly HEADER_FONT_SIZE: number = 24;
+  static readonly PANEL_NUMBER_FONT_SIZE: number = 28;
 
   // 数字选择面板
-  static readonly NUMBER_PANEL_Y: number = 480;
+  static readonly NUMBER_PANEL_Y: number = 460;
   static readonly NUMBER_SIZE: number = 36;
 
   // 难度级别
