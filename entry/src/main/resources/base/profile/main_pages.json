@@ -3,6 +3,7 @@
     "pages/Index",
     "pages/DragonGame",
     "pages/SnakeGame",
-    "pages/AnimalRestaurantGame"
+    "pages/AnimalRestaurantGame",
+    "pages/FlappyBirdGame"
   ]
 }

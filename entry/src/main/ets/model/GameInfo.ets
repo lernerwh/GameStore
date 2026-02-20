@@ -28,6 +28,16 @@ export class GameCatalog {
       enabled: true
     },
     {
+      id: 'flappybird',
+      name: '飞扬的小鸟',
+      description: '点击屏幕让小鸟跳跃，避开管道',
+      icon: '🐦',
+      color: '#228B22',
+      gradient: ['#87CEEB', '#98FB98'],
+      page: 'pages/FlappyBirdGame',
+      enabled: true
+    },
+    {
       id: 'dragon',
       name: '召唤神龙',
       description: '探索海洋，从小生物进化成神龙',
