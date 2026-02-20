@@ -18,6 +18,16 @@ export interface GameInfo {
 export class GameCatalog {
   private static games: GameInfo[] = [
     {
+      id: 'animalrestaurant',
+      name: '动物餐厅',
+      description: '招待可爱的动物顾客，经营温馨餐厅',
+      icon: '🐱',
+      color: '#FF9800',
+      gradient: ['#FFF8E7', '#FFE4C4'],
+      page: 'pages/AnimalRestaurantGame',
+      enabled: true
+    },
+    {
       id: 'dragon',
       name: '召唤神龙',
       description: '探索海洋，从小生物进化成神龙',

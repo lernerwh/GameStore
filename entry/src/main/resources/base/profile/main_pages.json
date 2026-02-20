@@ -2,6 +2,7 @@
   "src": [
     "pages/Index",
     "pages/DragonGame",
-    "pages/SnakeGame"
+    "pages/SnakeGame",
+    "pages/AnimalRestaurantGame"
   ]
 }
