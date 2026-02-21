@@ -10,27 +10,31 @@ import { image } from '@kit.ImageKit';
 export class ImageManager {
   private static instance: ImageManager | null = null;
 
-  // 图片资源名称配置
+  // 图片资源名称配置 - 对应 10 个进化等级
   private static readonly IMAGE_NAMES: Map<string, string> = new Map([
-    // 玩家各进化等级的图片
-    ['player_0', 'player_plankton.png'],
-    ['player_1', 'player_small_fish.png'],
-    ['player_2', 'player_medium_fish.png'],
-    ['player_3', 'player_large_fish.png'],
-    ['player_4', 'player_dolphin.png'],
-    ['player_5', 'player_shark.png'],
-    ['player_6', 'player_killer_whale.png'],
-    ['player_7', 'player_dragon.png'],
+    // 玩家各进化等级的图片 (0-9)
+    ['player_0', 'player_plankton.png'],      // 浮游生物
+    ['player_1', 'player_shrimp.png'],        // 小虾
+    ['player_2', 'player_small_fish.png'],    // 小鱼
+    ['player_3', 'player_medium_fish.png'],   // 中鱼
+    ['player_4', 'player_large_fish.png'],    // 大鱼
+    ['player_5', 'player_turtle.png'],        // 海龟
+    ['player_6', 'player_dolphin.png'],       // 海豚
+    ['player_7', 'player_shark.png'],         // 鲨鱼
+    ['player_8', 'player_killer_whale.png'],  // 虎鲸
+    ['player_9', 'player_dragon.png'],        // 神龙
 
-    // NPC 生物各等级的图片
+    // NPC 生物各等级的图片 (0-9)
     ['creature_0', 'creature_plankton.png'],
-    ['creature_1', 'creature_small_fish.png'],
-    ['creature_2', 'creature_medium_fish.png'],
-    ['creature_3', 'creature_large_fish.png'],
-    ['creature_4', 'creature_dolphin.png'],
-    ['creature_5', 'creature_shark.png'],
-    ['creature_6', 'creature_killer_whale.png'],
-    ['creature_7', 'creature_dragon.png'],
+    ['creature_1', 'creature_shrimp.png'],
+    ['creature_2', 'creature_small_fish.png'],
+    ['creature_3', 'creature_medium_fish.png'],
+    ['creature_4', 'creature_large_fish.png'],
+    ['creature_5', 'creature_turtle.png'],
+    ['creature_6', 'creature_dolphin.png'],
+    ['creature_7', 'creature_shark.png'],
+    ['creature_8', 'creature_killer_whale.png'],
+    ['creature_9', 'creature_dragon.png'],
   ]);
 
   // 图片缓存 - 使用 ImageBitmap

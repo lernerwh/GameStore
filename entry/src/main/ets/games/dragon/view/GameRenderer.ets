@@ -3,6 +3,7 @@ import { Creature } from '../../../model/Creature';
 import { GameState } from '../../../model/GameState';
 import { GameConstants } from '../../../common/constants/GameConstants';
 import { Camera, Point } from '../viewmodel/GameEngine';
+import { ImageManager } from '../../../common/utils/ImageManager';
 
 /**
  * 游戏渲染器 - 召唤神龙
@@ -65,6 +66,9 @@ export class GameRenderer {
   private drawPlayer(canvas: CanvasRenderingContext2D, player: Player, camera: Camera): void {
     const screenPos: Point = camera.worldToScreen(player.x, player.y);
     const radius = player.getRadius();
+    const imageManager = ImageManager.getInstance();
+    const imageKey = imageManager.getPlayerImageKey(player.evolutionLevel);
+    const cachedImage = imageManager.getCachedImage(imageKey);
 
     // 玩家光晕
     const glowGradient = canvas.createRadialGradient(
@@ -78,20 +82,33 @@ export class GameRenderer {
     canvas.arc(screenPos.x, screenPos.y, radius * 1.5, 0, Math.PI * 2);
     canvas.fill();
 
-    // 玩家主体
-    canvas.fillStyle = player.getColor();
-    canvas.beginPath();
-    canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
-    canvas.fill();
+    if (cachedImage) {
+      // 使用图片绘制
+      canvas.drawImage(
+        cachedImage,
+        screenPos.x - radius,
+        screenPos.y - radius,
+        radius * 2,
+        radius * 2
+      );
+    } else {
+      // 回退到圆形绘制
+      canvas.fillStyle = player.getColor();
+      canvas.beginPath();
+      canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
+      canvas.fill();
+    }
 
     // 玩家边框
     canvas.strokeStyle = '#FFD700';
     canvas.lineWidth = 2;
+    canvas.beginPath();
+    canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
     canvas.stroke();
 
     // 玩家名称
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 12px sans-serif';
+    canvas.font = 'bold 24px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
     canvas.fillText(player.getName(), screenPos.x, screenPos.y - radius - 15);
@@ -99,6 +116,7 @@ export class GameRenderer {
 
   private drawCreatures(canvas: CanvasRenderingContext2D, creatures: Creature[], camera: Camera, player: Player): void {
     const playerRadius = player.getRadius();
+    const imageManager = ImageManager.getInstance();
 
     for (const creature of creatures) {
       const screenPos: Point = camera.worldToScreen(creature.x, creature.y);
@@ -118,15 +136,31 @@ export class GameRenderer {
         borderColor = '#FF6B6B'; // 危险 - 红色
       }
 
-      // 生物主体
-      canvas.fillStyle = creature.getColor();
-      canvas.beginPath();
-      canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
-      canvas.fill();
+      const imageKey = imageManager.getCreatureImageKey(creature.evolutionLevel);
+      const cachedImage = imageManager.getCachedImage(imageKey);
+
+      if (cachedImage) {
+        // 使用图片绘制
+        canvas.drawImage(
+          cachedImage,
+          screenPos.x - radius,
+          screenPos.y - radius,
+          radius * 2,
+          radius * 2
+        );
+      } else {
+        // 回退到圆形绘制
+        canvas.fillStyle = creature.getColor();
+        canvas.beginPath();
+        canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
+        canvas.fill();
+      }
 
       // 边框
       canvas.strokeStyle = borderColor;
       canvas.lineWidth = 2;
+      canvas.beginPath();
+      canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
       canvas.stroke();
     }
   }
@@ -149,7 +183,7 @@ export class GameRenderer {
 
       // 警告文字
       canvas.fillStyle = '#FF6B6B';
-      canvas.font = 'bold 14px sans-serif';
+      canvas.font = 'bold 28px sans-serif';
       canvas.textAlign = 'center';
       canvas.fillText('⚠ 注意边界', this.canvasWidth / 2, 30);
     }
@@ -204,10 +238,10 @@ export class GameRenderer {
   private drawHUD(canvas: CanvasRenderingContext2D, player: Player, score: number, playTime: number): void {
     // 左上角信息
     canvas.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    canvas.fillRect(5, 5, 120, 60);
+    canvas.fillRect(5, 5, 180, 90);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 16px sans-serif';
+    canvas.font = 'bold 28px sans-serif';
     canvas.textAlign = 'left';
     canvas.textBaseline = 'top';
     canvas.fillText(`分数: ${score}`, 10, 10);
@@ -215,12 +249,12 @@ export class GameRenderer {
     // 游戏时间
     const minutes = Math.floor(playTime / 60);
     const seconds = Math.floor(playTime % 60);
-    canvas.font = '14px sans-serif';
-    canvas.fillText(`时间: ${minutes}:${seconds.toString().padStart(2, '0')}`, 10, 30);
+    canvas.font = '24px sans-serif';
+    canvas.fillText(`时间: ${minutes}:${seconds.toString().padStart(2, '0')}`, 10, 42);
 
     // 当前进化等级
     canvas.fillStyle = player.getColor();
-    canvas.fillText(`${player.getName()}`, 10, 48);
+    canvas.fillText(`${player.getName()}`, 10, 70);
   }
 
   private drawStartPrompt(canvas: CanvasRenderingContext2D): void {
@@ -228,7 +262,7 @@ export class GameRenderer {
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 24px sans-serif';
+    canvas.font = 'bold 48px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
     canvas.fillText('点击开始游戏', this.canvasWidth / 2, this.canvasHeight / 2);
@@ -244,21 +278,21 @@ export class GameRenderer {
     if (hasWon) {
       // 胜利
       canvas.fillStyle = '#FFD700';
-      canvas.font = 'bold 36px sans-serif';
-      canvas.fillText('🐉 恭喜你召唤出神龙! 🐉', this.canvasWidth / 2, this.canvasHeight / 2 - 40);
+      canvas.font = 'bold 48px sans-serif';
+      canvas.fillText('🐉 恭喜你召唤出神龙! 🐉', this.canvasWidth / 2, this.canvasHeight / 2 - 60);
     } else {
       // 失败
       canvas.fillStyle = '#FF6B6B';
-      canvas.font = 'bold 36px sans-serif';
-      canvas.fillText('游戏结束', this.canvasWidth / 2, this.canvasHeight / 2 - 40);
+      canvas.font = 'bold 48px sans-serif';
+      canvas.fillText('游戏结束', this.canvasWidth / 2, this.canvasHeight / 2 - 60);
     }
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = '24px sans-serif';
+    canvas.font = '36px sans-serif';
     canvas.fillText(`最终分数: ${score}`, this.canvasWidth / 2, this.canvasHeight / 2 + 20);
 
     canvas.fillStyle = '#AAAAAA';
-    canvas.font = '18px sans-serif';
-    canvas.fillText('点击返回主菜单', this.canvasWidth / 2, this.canvasHeight / 2 + 60);
+    canvas.font = '28px sans-serif';
+    canvas.fillText('点击返回主菜单', this.canvasWidth / 2, this.canvasHeight / 2 + 80);
   }
 }
