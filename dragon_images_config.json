@@ -1,0 +1,31 @@
+[
+  {"name": "player_plankton", "prompt": "cute cartoon plankton, single-celled organism, light green translucent body, tiny simple eyes, floating in water, game asset style, transparent background, simple design", "icon": true, "size_key": "medium"},
+  {"name": "creature_plankton", "prompt": "cute cartoon plankton, single-celled organism, light green translucent body, tiny simple eyes, floating in water, game asset style, transparent background, simple design", "icon": true, "size_key": "medium"},
+  
+  {"name": "player_shrimp", "prompt": "cute cartoon shrimp, pale green color, small crustacean with curved body, tiny legs, antennae, cartoon style, game asset, transparent background", "icon": true, "size_key": "medium"},
+  {"name": "creature_shrimp", "prompt": "cute cartoon shrimp, pale green color, small crustacean with curved body, tiny legs, antennae, cartoon style, game asset, transparent background", "icon": true, "size_key": "medium"},
+  
+  {"name": "player_small_fish", "prompt": "cute cartoon small fish, cyan turquoise color, round body, big eyes, small fins, friendly expression, game asset, transparent background", "icon": true, "size_key": "medium"},
+  {"name": "creature_small_fish", "prompt": "cute cartoon small fish, cyan turquoise color, round body, big eyes, small fins, friendly expression, game asset, transparent background", "icon": true, "size_key": "medium"},
+  
+  {"name": "player_medium_fish", "prompt": "cute cartoon medium fish, dodger blue color, sleek body, colorful scales, dorsal fin, expressive eyes, game asset, transparent background", "icon": true, "size_key": "medium"},
+  {"name": "creature_medium_fish", "prompt": "cute cartoon medium fish, dodger blue color, sleek body, colorful scales, dorsal fin, expressive eyes, game asset, transparent background", "icon": true, "size_key": "medium"},
+  
+  {"name": "player_large_fish", "prompt": "cute cartoon large fish, royal blue color, powerful body, elegant fins, majestic appearance, game asset, transparent background", "icon": true, "size_key": "medium"},
+  {"name": "creature_large_fish", "prompt": "cute cartoon large fish, royal blue color, powerful body, elegant fins, majestic appearance, game asset, transparent background", "icon": true, "size_key": "medium"},
+  
+  {"name": "player_turtle", "prompt": "cute cartoon sea turtle, violet purple color, round shell with pattern, friendly face, flippers, swimming pose, game asset, transparent background", "icon": true, "size_key": "medium"},
+  {"name": "creature_turtle", "prompt": "cute cartoon sea turtle, violet purple color, round shell with pattern, friendly face, flippers, swimming pose, game asset, transparent background", "icon": true, "size_key": "medium"},
+  
+  {"name": "player_dolphin", "prompt": "cute cartoon dolphin, tomato red coral color, sleek body, friendly smile, jumping pose, playful expression, game asset, transparent background", "icon": true, "size_key": "medium"},
+  {"name": "creature_dolphin", "prompt": "cute cartoon dolphin, tomato red coral color, sleek body, friendly smile, jumping pose, playful expression, game asset, transparent background", "icon": true, "size_key": "medium"},
+  
+  {"name": "player_shark", "prompt": "cute cartoon shark, orange-red color, powerful body, characteristic dorsal fin, friendly but fierce expression, game asset, transparent background", "icon": true, "size_key": "medium"},
+  {"name": "creature_shark", "prompt": "cute cartoon shark, orange-red color, powerful body, characteristic dorsal fin, friendly but fierce expression, game asset, transparent background", "icon": true, "size_key": "medium"},
+  
+  {"name": "player_killer_whale", "prompt": "cute cartoon killer whale orca, crimson red color, black and white pattern style, majestic body, tall dorsal fin, powerful look, game asset, transparent background", "icon": true, "size_key": "medium"},
+  {"name": "creature_killer_whale", "prompt": "cute cartoon killer whale orca, crimson red color, black and white pattern style, majestic body, tall dorsal fin, powerful look, game asset, transparent background", "icon": true, "size_key": "medium"},
+  
+  {"name": "player_dragon", "prompt": "majestic cartoon Chinese dragon, golden yellow color, serpentine body, dragon head with horns, flowing whiskers, scales, divine and powerful, game asset, transparent background, legendary creature", "icon": true, "size_key": "medium"},
+  {"name": "creature_dragon", "prompt": "majestic cartoon Chinese dragon, golden yellow color, serpentine body, dragon head with horns, flowing whiskers, scales, divine and powerful, game asset, transparent background, legendary creature", "icon": true, "size_key": "medium"}
+]

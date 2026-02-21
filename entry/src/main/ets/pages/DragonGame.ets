@@ -6,6 +6,10 @@ import { ImageManager } from '../common/utils/ImageManager';
 import { common } from '@kit.AbilityKit';
 import { router } from '@kit.ArkUI';
 
+interface PageParams {
+  autoStart?: boolean;
+}
+
 @Entry
 @Component
 struct DragonGame {
@@ -20,6 +24,12 @@ struct DragonGame {
   aboutToAppear(): void {
     // 初始化图片管理器
     this.initImageManager();
+
+    // 检查是否需要自动开始游戏
+    const params = router.getParams() as PageParams;
+    if (params?.autoStart) {
+      this.startGame();
+    }
   }
 
   aboutToDisappear(): void {
@@ -55,77 +65,77 @@ struct DragonGame {
       Row() {
         Button() {
           Text('← 返回')
-            .fontSize(16)
+            .fontSize(20)
             .fontColor('#FFFFFF')
         }
         .backgroundColor('rgba(255,255,255,0.1)')
         .borderRadius(20)
-        .height(36)
-        .padding({ left: 15, right: 15 })
+        .height(40)
+        .padding({ left: 18, right: 18 })
         .onClick(() => { router.back(); })
       }
       .width('100%')
       .padding({ left: 20, top: 50 })
 
       Text('召唤神龙')
-        .fontSize(42)
+        .fontSize(52)
         .fontWeight(FontWeight.Bold)
         .fontColor('#FFD700')
         .textShadow({ radius: 10, color: '#FF6B00', offsetX: 0, offsetY: 0 })
         .margin({ top: 30, bottom: 20 })
 
       Text('🐉')
-        .fontSize(80)
+        .fontSize(100)
         .margin({ bottom: 30 })
 
       Text('进化成长游戏')
-        .fontSize(18)
+        .fontSize(24)
         .fontColor('#AAAAAA')
         .margin({ bottom: 10 })
 
       Text('从浮游生物进化成神龙!')
-        .fontSize(16)
+        .fontSize(20)
         .fontColor('#888888')
         .margin({ bottom: 50 })
 
       Column() {
         Text('游戏规则:')
-          .fontSize(16)
+          .fontSize(20)
           .fontColor('#FFFFFF')
           .margin({ bottom: 15 })
 
         Text('• 点击屏幕控制移动方向')
-          .fontSize(14)
+          .fontSize(18)
           .fontColor('#CCCCCC')
-          .margin({ bottom: 8 })
+          .margin({ bottom: 10 })
 
         Text('• 吃掉比你小的生物成长')
-          .fontSize(14)
+          .fontSize(18)
           .fontColor('#90EE90')
-          .margin({ bottom: 8 })
+          .margin({ bottom: 10 })
 
         Text('• 躲避比你大的生物')
-          .fontSize(14)
+          .fontSize(18)
           .fontColor('#FF6B6B')
-          .margin({ bottom: 8 })
+          .margin({ bottom: 10 })
 
         Text('• 目标：进化成神龙!')
-          .fontSize(14)
+          .fontSize(18)
           .fontColor('#FFD700')
           .margin({ bottom: 20 })
       }
-      .padding(20)
+      .padding(25)
       .backgroundColor('rgba(255,255,255,0.1)')
       .borderRadius(15)
       .margin({ bottom: 40 })
 
       Button('开始游戏')
-        .fontSize(22)
+        .fontSize(28)
         .fontColor('#FFFFFF')
         .backgroundColor('#4CAF50')
         .borderRadius(30)
-        .width(180)
-        .height(50)
+        .width(200)
+        .height(60)
         .shadow({ radius: 15, color: '#4CAF50', offsetX: 0, offsetY: 5 })
         .onClick(() => { this.startGame(); })
     }

@@ -108,10 +108,10 @@ export class GameRenderer {
 
     // 玩家名称
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 24px sans-serif';
+    canvas.font = 'bold 30px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
-    canvas.fillText(player.getName(), screenPos.x, screenPos.y - radius - 15);
+    canvas.fillText(player.getName(), screenPos.x, screenPos.y - radius - 20);
   }
 
   private drawCreatures(canvas: CanvasRenderingContext2D, creatures: Creature[], camera: Camera, player: Player): void {
@@ -183,9 +183,9 @@ export class GameRenderer {
 
       // 警告文字
       canvas.fillStyle = '#FF6B6B';
-      canvas.font = 'bold 28px sans-serif';
+      canvas.font = 'bold 36px sans-serif';
       canvas.textAlign = 'center';
-      canvas.fillText('⚠ 注意边界', this.canvasWidth / 2, 30);
+      canvas.fillText('⚠ 注意边界', this.canvasWidth / 2, 35);
     }
   }
 
@@ -238,10 +238,10 @@ export class GameRenderer {
   private drawHUD(canvas: CanvasRenderingContext2D, player: Player, score: number, playTime: number): void {
     // 左上角信息
     canvas.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    canvas.fillRect(5, 5, 180, 90);
+    canvas.fillRect(5, 5, 220, 110);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 28px sans-serif';
+    canvas.font = 'bold 34px sans-serif';
     canvas.textAlign = 'left';
     canvas.textBaseline = 'top';
     canvas.fillText(`分数: ${score}`, 10, 10);
@@ -249,12 +249,12 @@ export class GameRenderer {
     // 游戏时间
     const minutes = Math.floor(playTime / 60);
     const seconds = Math.floor(playTime % 60);
-    canvas.font = '24px sans-serif';
-    canvas.fillText(`时间: ${minutes}:${seconds.toString().padStart(2, '0')}`, 10, 42);
+    canvas.font = '28px sans-serif';
+    canvas.fillText(`时间: ${minutes}:${seconds.toString().padStart(2, '0')}`, 10, 50);
 
     // 当前进化等级
     canvas.fillStyle = player.getColor();
-    canvas.fillText(`${player.getName()}`, 10, 70);
+    canvas.fillText(`${player.getName()}`, 10, 90);
   }
 
   private drawStartPrompt(canvas: CanvasRenderingContext2D): void {
@@ -262,7 +262,7 @@ export class GameRenderer {
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 48px sans-serif';
+    canvas.font = 'bold 60px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
     canvas.fillText('点击开始游戏', this.canvasWidth / 2, this.canvasHeight / 2);
@@ -278,21 +278,21 @@ export class GameRenderer {
     if (hasWon) {
       // 胜利
       canvas.fillStyle = '#FFD700';
-      canvas.font = 'bold 48px sans-serif';
-      canvas.fillText('🐉 恭喜你召唤出神龙! 🐉', this.canvasWidth / 2, this.canvasHeight / 2 - 60);
+      canvas.font = 'bold 60px sans-serif';
+      canvas.fillText('🐉 恭喜你召唤出神龙! 🐉', this.canvasWidth / 2, this.canvasHeight / 2 - 80);
     } else {
       // 失败
       canvas.fillStyle = '#FF6B6B';
-      canvas.font = 'bold 48px sans-serif';
-      canvas.fillText('游戏结束', this.canvasWidth / 2, this.canvasHeight / 2 - 60);
+      canvas.font = 'bold 60px sans-serif';
+      canvas.fillText('游戏结束', this.canvasWidth / 2, this.canvasHeight / 2 - 80);
     }
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = '36px sans-serif';
+    canvas.font = '44px sans-serif';
     canvas.fillText(`最终分数: ${score}`, this.canvasWidth / 2, this.canvasHeight / 2 + 20);
 
     canvas.fillStyle = '#AAAAAA';
-    canvas.font = '28px sans-serif';
-    canvas.fillText('点击返回主菜单', this.canvasWidth / 2, this.canvasHeight / 2 + 80);
+    canvas.font = '34px sans-serif';
+    canvas.fillText('点击返回主菜单', this.canvasWidth / 2, this.canvasHeight / 2 + 100);
   }
 }
