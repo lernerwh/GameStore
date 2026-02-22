@@ -3,7 +3,6 @@ import { Table } from '../model/Table';
 import { Dish } from '../model/Dish';
 import { Restaurant } from '../model/Restaurant';
 import { GameConstants, GameState, DishType, CustomerState, TableState } from '../model/GameConstants';
-import { MathUtils } from '../model/MathUtils';
 
 /**
  * 游戏引擎 - 动物餐厅核心逻辑
