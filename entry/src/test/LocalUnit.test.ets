@@ -39,6 +39,15 @@ export default function localUnitTest() {
       expect(snakeGame?.page).assertEqual('pages/SnakeGame');
     });
 
+    it('gameCatalog_ids_are_unique', 0, () => {
+      const games = GameCatalog.getGames();
+      const idSet = new Set<string>();
+      for (const game of games) {
+        idSet.add(game.id);
+      }
+      expect(idSet.size).assertEqual(games.length);
+    });
+
     it('gameCatalog_returns_undefined_for_unknown_id', 0, () => {
       const unknown = GameCatalog.getGameById('unknown_game_id');
       expect(unknown === undefined).assertEqual(true);
