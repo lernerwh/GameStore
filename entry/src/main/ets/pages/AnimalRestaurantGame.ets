@@ -17,11 +17,16 @@ interface PageParams {
 struct AnimalRestaurantGame {
   @State isPlaying: boolean = false;
   @State viewModel: GameViewModel = new GameViewModel();
+  @State isPaused: boolean = false;
+  @State soundEnabled: boolean = true;
+  @State buttonScale: number = 1.0;
+  @State animalFloatOffset: number = 0.0;
 
   private renderer: GameRenderer = new GameRenderer();
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
+  private animationInterval: number | null = null;
 
   aboutToAppear(): void {
     // 检查是否需要自动开始游戏
@@ -29,10 +34,30 @@ struct AnimalRestaurantGame {
     if (params?.autoStart) {
       this.startGame();
     }
+    this.startAnimalAnimation();
   }
 
   aboutToDisappear(): void {
     this.cleanup();
+    this.stopAnimalAnimation();
+  }
+
+  private startAnimalAnimation(): void {
+    this.animationInterval = setInterval(() => {
+      this.animalFloatOffset = Math.sin(Date.now() / 500) * 5;
+    }, 50);
+  }
+
+  private stopAnimalAnimation(): void {
+    if (this.animationInterval !== null) {
+      clearInterval(this.animationInterval);
+      this.animationInterval = null;
+    }
+  }
+
+  private playSound(type: string): void {
+    if (!this.soundEnabled) return;
+    // 可以在此添加实际音效播放代码
   }
 
   build() {
@@ -81,14 +106,30 @@ struct AnimalRestaurantGame {
 
           // 可爱的动物图标
           Row() {
-            Text('🐱').fontSize(40)
-            Text('🐕').fontSize(40)
-            Text('🐰').fontSize(40)
-            Text('🐻').fontSize(40)
-            Text('🦊').fontSize(40)
-            Text('🐼').fontSize(40)
+            Text('🐱').fontSize(40).offset({ y: this.animalFloatOffset })
+            Text('🐕').fontSize(40).offset({ y: -this.animalFloatOffset })
+            Text('🐰').fontSize(40).offset({ y: this.animalFloatOffset })
+            Text('🐻').fontSize(40).offset({ y: -this.animalFloatOffset })
+            Text('🦊').fontSize(40).offset({ y: this.animalFloatOffset })
+            Text('🐼').fontSize(40).offset({ y: -this.animalFloatOffset })
           }
           .margin({ bottom: 30 })
+
+          Row({ space: 10 }) {
+            Text('经营养成')
+              .fontSize(12)
+              .fontColor('#6d4c41')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(255,152,0,0.2)')
+              .borderRadius(14)
+            Text('顾客互动')
+              .fontSize(12)
+              .fontColor('#6d4c41')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(255,152,0,0.2)')
+              .borderRadius(14)
+          }
+          .margin({ bottom: 20 })
 
           // 游戏简介
           Column() {
@@ -118,7 +159,15 @@ struct AnimalRestaurantGame {
             .width(200)
             .height(50)
             .shadow({ radius: 10, color: '#FF9800', offsetX: 0, offsetY: 5 })
-            .onClick(() => { this.startGame(); })
+            .scale({ x: this.buttonScale, y: this.buttonScale })
+            .onClick(() => {
+              this.playSound('click');
+              this.buttonScale = 0.95;
+              setTimeout(() => {
+                this.buttonScale = 1.0;
+                this.startGame();
+              }, 150);
+            })
 
           // 提示
           Text('点击画面与游戏互动')
@@ -144,22 +193,111 @@ struct AnimalRestaurantGame {
 
   @Builder
   GameView() {
-    Column() {
-      Canvas(this.canvasContext)
-        .width(GameConstants.CANVAS_WIDTH)
-        .height(GameConstants.CANVAS_HEIGHT)
-        .backgroundColor(GameConstants.COLOR_BACKGROUND)
-        .onReady(() => { this.onCanvasReady(); })
-        .onClick((event) => { this.onCanvasClick(event.x, event.y); })
+    Stack() {
+      Column() {
+        Canvas(this.canvasContext)
+          .width(GameConstants.CANVAS_WIDTH)
+          .height(GameConstants.CANVAS_HEIGHT)
+          .backgroundColor(GameConstants.COLOR_BACKGROUND)
+          .onReady(() => { this.onCanvasReady(); })
+          .onClick((event) => { this.onCanvasClick(event.x, event.y); })
+      }
+      .width('100%')
+      .height('100%')
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor('#F5F5DC')
+
+      // 控制按钮层
+      Column() {
+        Row() {
+          Button('主页')
+            .fontSize(14)
+            .fontColor('#FFFFFF')
+            .backgroundColor('rgba(141,110,99,0.92)')
+            .borderRadius(18)
+            .height(36)
+            .onClick(() => {
+              this.backToHome();
+            })
+
+          Button('重开')
+            .fontSize(14)
+            .fontColor('#FFFFFF')
+            .backgroundColor('rgba(255,152,0,0.95)')
+            .borderRadius(18)
+            .height(36)
+            .margin({ left: 8 })
+            .onClick(() => {
+              this.restartGame();
+            })
+
+          Text(`金币 ${this.viewModel.getRestaurant().coins}`)
+            .fontSize(14)
+            .fontColor('#5d4037')
+            .backgroundColor('rgba(255,255,255,0.78)')
+            .borderRadius(14)
+            .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+            .margin({ left: 8, right: 8 })
+
+          Button() {
+            Text('⏸️')
+              .fontSize(24)
+          }
+          .backgroundColor('rgba(255,255,255,0.8)')
+          .borderRadius(20)
+          .width(40)
+          .height(40)
+          .onClick(() => {
+            this.playSound('click');
+            this.isPaused = !this.isPaused;
+            if (this.isPaused) {
+              this.viewModel.pauseGame();
+            } else {
+              this.viewModel.resumeGame();
+            }
+          })
+
+          Button() {
+            Text(this.soundEnabled ? '🔊' : '🔇')
+              .fontSize(24)
+          }
+          .backgroundColor('rgba(255,255,255,0.8)')
+          .borderRadius(20)
+          .width(40)
+          .height(40)
+          .margin({ left: 10 })
+          .onClick(() => {
+            this.playSound('click');
+            this.soundEnabled = !this.soundEnabled;
+          })
+        }
+        .width('100%')
+        .padding({ left: 20, right: 20, top: 50 })
+        .justifyContent(FlexAlign.Start)
+      }
+      .width('100%')
+      .height('100%')
+      .position({ x: 0, y: 0 })
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor('#F5F5DC')
   }
 
   private startGame(): void {
     this.isPlaying = true;
+    this.viewModel = new GameViewModel();
+  }
+
+  private restartGame(): void {
+    this.viewModel = new GameViewModel();
+    this.viewModel.startGame();
+    this.isPaused = false;
+  }
+
+  private backToHome(): void {
+    this.cleanup();
+    this.isPlaying = false;
+    this.isPaused = false;
     this.viewModel = new GameViewModel();
   }
 
@@ -179,11 +317,13 @@ struct AnimalRestaurantGame {
     const state = this.viewModel.gameState;
 
     if (state === GameState.IDLE) {
+      this.playSound('start');
       this.viewModel.startGame();
       return;
     }
 
     if (state === GameState.PAUSED) {
+      this.playSound('resume');
       this.viewModel.resumeGame();
       return;
     }
@@ -191,6 +331,7 @@ struct AnimalRestaurantGame {
     if (state === GameState.PLAYING) {
       // 检查点击的是菜品、餐桌还是顾客
       const clickPoint: Point = { x, y };
+      let clicked = false;
 
       // 优先检查菜品（准备好的菜品需要点击上菜）
       const dishes = this.viewModel.getDishes();
@@ -198,32 +339,48 @@ struct AnimalRestaurantGame {
         if (dish.isReady()) {
           const rect = dish.getCollisionRect();
           if (MathUtils.isPointInRect(clickPoint, rect)) {
+            this.playSound('serve');
             this.viewModel.clickDish(dish.id);
-            return;
+            this.showClickRipple(x, y);
+            clicked = true;
+            break;
           }
         }
       }
 
       // 检查餐桌（需要清理的餐桌）
-      const tables = this.viewModel.getTables();
-      for (const table of tables) {
-        const rect = table.getCollisionRect();
-        if (MathUtils.isPointInRect(clickPoint, rect)) {
-          this.viewModel.clickTable(table.id);
-          return;
+      if (!clicked) {
+        const tables = this.viewModel.getTables();
+        for (const table of tables) {
+          const rect = table.getCollisionRect();
+          if (MathUtils.isPointInRect(clickPoint, rect)) {
+            this.playSound('clean');
+            this.viewModel.clickTable(table.id);
+            this.showClickRipple(x, y);
+            clicked = true;
+            break;
+          }
         }
       }
 
       // 检查顾客（可以安抚等待的顾客）
-      const customers = this.viewModel.getAllCustomers();
-      for (const customer of customers) {
-        const rect = customer.getCollisionRect();
-        if (MathUtils.isPointInRect(clickPoint, rect)) {
-          this.viewModel.clickCustomer(customer.id);
-          return;
+      if (!clicked) {
+        const customers = this.viewModel.getAllCustomers();
+        for (const customer of customers) {
+          const rect = customer.getCollisionRect();
+          if (MathUtils.isPointInRect(clickPoint, rect)) {
+            this.playSound('pet');
+            this.viewModel.clickCustomer(customer.id);
+            this.showClickRipple(x, y);
+            break;
+          }
         }
       }
     }
+  }
+
+  private showClickRipple(x: number, y: number): void {
+    // 可以在此添加波纹动画效果
   }
 
   private render(): void {
