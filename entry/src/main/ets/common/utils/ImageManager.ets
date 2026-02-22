@@ -39,7 +39,6 @@ export class ImageManager {
 
   // 图片缓存 - 使用 ImageBitmap
   private imageCache: Map<string, ImageBitmap> = new Map();
-  private context: common.UIAbilityContext | null = null;
   private resMgr: resourceManager.ResourceManager | null = null;
 
   static getInstance(): ImageManager {
@@ -53,7 +52,6 @@ export class ImageManager {
    * 初始化资源管理器，预加载所有图片
    */
   async init(context: common.UIAbilityContext): Promise<void> {
-    this.context = context;
     try {
       this.resMgr = context.resourceManager;
       // 预加载所有图片

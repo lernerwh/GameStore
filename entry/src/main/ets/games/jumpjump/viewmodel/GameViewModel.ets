@@ -8,7 +8,6 @@ export class GameViewModel {
   private engine: GameEngine;
   @Track gameState: GameState;
   @Track score: number;
-  @Track highScore: number;
   @Track player: Player;
   @Track platforms: Platform[];
   @Track cameraWorldX: number;
@@ -23,7 +22,6 @@ export class GameViewModel {
     this.engine = new GameEngine();
     this.gameState = GameState.IDLE;
     this.score = 0;
-    this.highScore = 0;
     this.player = this.engine.getPlayer();
     this.platforms = this.engine.getPlatforms();
     this.cameraWorldX = 0;
