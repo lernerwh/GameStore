@@ -13,10 +13,13 @@ interface PageParams {
 struct JumpJumpGame {
   @State isPlaying: boolean = false;
   @State viewModel: GameViewModel = new GameViewModel();
+  @State buttonScale: number = 1.0;
+  @State playerBreathOffset: number = 0.0;
   private renderer: GameRenderer = new GameRenderer();
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
+  private animationInterval: number | null = null;
 
   aboutToAppear(): void {
     // 检查是否需要自动开始游戏
@@ -24,10 +27,27 @@ struct JumpJumpGame {
     if (params?.autoStart) {
       this.startGame();
     }
+
+    // 启动玩家呼吸动画
+    this.startPlayerAnimation();
   }
 
   aboutToDisappear(): void {
     this.cleanup();
+    this.stopPlayerAnimation();
+  }
+
+  private startPlayerAnimation(): void {
+    this.animationInterval = setInterval(() => {
+      this.playerBreathOffset = Math.sin(Date.now() / 500) * 3;
+    }, 50);
+  }
+
+  private stopPlayerAnimation(): void {
+    if (this.animationInterval !== null) {
+      clearInterval(this.animationInterval);
+      this.animationInterval = null;
+    }
   }
 
   build() {
@@ -76,6 +96,7 @@ struct JumpJumpGame {
               .height(60)
               .borderRadius(25)
               .backgroundColor('#2C2C2C')
+              .offset({ y: this.playerBreathOffset })
           }
           .margin({ bottom: 40 })
 
@@ -89,6 +110,22 @@ struct JumpJumpGame {
             .fontColor('#666666')
             .margin({ bottom: 40 })
 
+          Row({ space: 10 }) {
+            Text('按压蓄力')
+              .fontSize(12)
+              .fontColor('#5d4037')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(121,85,72,0.18)')
+              .borderRadius(14)
+            Text('落点判定')
+              .fontSize(12)
+              .fontColor('#5d4037')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(121,85,72,0.18)')
+              .borderRadius(14)
+          }
+          .margin({ bottom: 18 })
+
           Button('开始游戏')
             .fontSize(22)
             .fontColor('#FFFFFF')
@@ -96,7 +133,14 @@ struct JumpJumpGame {
             .borderRadius(30)
             .width(180)
             .height(50)
-            .onClick(() => { this.startGame(); })
+            .scale({ x: this.buttonScale, y: this.buttonScale })
+            .onClick(() => {
+              this.buttonScale = 0.95;
+              setTimeout(() => {
+                this.buttonScale = 1.0;
+                this.startGame();
+              }, 150);
+            })
         }
         .width('100%')
         .padding({ bottom: 48 })
@@ -117,6 +161,35 @@ struct JumpJumpGame {
   @Builder
   GameView() {
     Column() {
+      Row({ space: 12 }) {
+        Button('主页')
+          .fontSize(14)
+          .fontColor('#FFFFFF')
+          .backgroundColor('rgba(44,44,44,0.5)')
+          .borderRadius(16)
+          .height(34)
+          .onClick(() => {
+            this.backToHome();
+          })
+
+        Button('重开')
+          .fontSize(14)
+          .fontColor('#FFFFFF')
+          .backgroundColor('rgba(76,175,80,0.82)')
+          .borderRadius(16)
+          .height(34)
+          .onClick(() => {
+            this.restartGame();
+          })
+
+        Text(`分数 ${this.viewModel.score}`)
+          .fontSize(14)
+          .fontColor('#3e2723')
+      }
+      .width(GameConstants.CANVAS_WIDTH)
+      .justifyContent(FlexAlign.SpaceBetween)
+      .margin({ bottom: 8 })
+
       Canvas(this.canvasContext)
         .width(GameConstants.CANVAS_WIDTH)
         .height(GameConstants.CANVAS_HEIGHT)
@@ -132,6 +205,17 @@ struct JumpJumpGame {
 
   private startGame(): void {
     this.isPlaying = true;
+    this.viewModel = new GameViewModel();
+  }
+
+  private restartGame(): void {
+    this.viewModel = new GameViewModel();
+    this.viewModel.startGame();
+  }
+
+  private backToHome(): void {
+    this.cleanup();
+    this.isPlaying = false;
     this.viewModel = new GameViewModel();
   }
 
