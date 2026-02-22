@@ -1,5 +1,7 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
 import { GameCatalog } from '../main/ets/model/GameInfo';
+import { SudokuBoard } from '../main/ets/games/sudoku/model/SudokuBoard';
+import { Difficulty } from '../main/ets/games/sudoku/model/SudokuConstants';
 
 export default function localUnitTest() {
   describe('localUnitTest', () => {
@@ -40,6 +42,28 @@ export default function localUnitTest() {
     it('gameCatalog_returns_undefined_for_unknown_id', 0, () => {
       const unknown = GameCatalog.getGameById('unknown_game_id');
       expect(unknown === undefined).assertEqual(true);
+    });
+
+    it('sudokuBoard_generates_playable_grid', 0, () => {
+      const board = new SudokuBoard();
+      board.generateNewGame(Difficulty.EASY);
+
+      let fixedCount = 0;
+      let emptyCount = 0;
+      for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+          const cell = board.cells[row][col];
+          if (cell.fixed) {
+            fixedCount++;
+          }
+          if (cell.value === 0) {
+            emptyCount++;
+          }
+        }
+      }
+
+      expect(fixedCount > 0).assertEqual(true);
+      expect(emptyCount > 0).assertEqual(true);
     });
   });
 }
