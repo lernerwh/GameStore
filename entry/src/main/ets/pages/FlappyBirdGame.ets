@@ -19,6 +19,8 @@ struct FlappyBirdGame {
   // 页面状态
   @State isPlaying: boolean = false;
   @State highScore: number = 0;
+  @State buttonScale: number = 1.0;
+  @State birdFlapOffset: number = 0.0;
 
   // 游戏相关
   @State viewModel: GameViewModel = new GameViewModel();
@@ -29,6 +31,7 @@ struct FlappyBirdGame {
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
+  private animationInterval: number | null = null;
 
   aboutToAppear(): void {
     this.initScoreRepository();
@@ -38,10 +41,27 @@ struct FlappyBirdGame {
     if (params?.autoStart) {
       this.startGame();
     }
+
+    // 启动小鸟翅膀动画
+    this.startBirdAnimation();
   }
 
   aboutToDisappear(): void {
     this.cleanup();
+    this.stopBirdAnimation();
+  }
+
+  private startBirdAnimation(): void {
+    this.animationInterval = setInterval(() => {
+      this.birdFlapOffset = Math.sin(Date.now() / 200) * 3;
+    }, 50);
+  }
+
+  private stopBirdAnimation(): void {
+    if (this.animationInterval !== null) {
+      clearInterval(this.animationInterval);
+      this.animationInterval = null;
+    }
   }
 
   build() {
@@ -98,7 +118,24 @@ struct FlappyBirdGame {
           // 小鸟图标
           Text('🐦')
             .fontSize(80)
+            .offset({ y: this.birdFlapOffset })
             .margin({ bottom: 40 })
+
+          Row({ space: 10 }) {
+            Text('节奏挑战')
+              .fontSize(12)
+              .fontColor('#7c4a00')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(255,215,0,0.25)')
+              .borderRadius(14)
+            Text('单击起跳')
+              .fontSize(12)
+              .fontColor('#7c4a00')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(255,215,0,0.22)')
+              .borderRadius(14)
+          }
+          .margin({ bottom: 18 })
 
           // 最高分
           Text(`最高分: ${this.highScore}`)
@@ -114,8 +151,13 @@ struct FlappyBirdGame {
             .borderRadius(25)
             .width(200)
             .height(50)
+            .scale({ x: this.buttonScale, y: this.buttonScale })
             .onClick(() => {
-              this.startGame();
+              this.buttonScale = 0.95;
+              setTimeout(() => {
+                this.buttonScale = 1.0;
+                this.startGame();
+              }, 150);
             })
 
           // 说明文字
@@ -148,6 +190,35 @@ struct FlappyBirdGame {
   @Builder
   GameView() {
     Column() {
+      Row({ space: 12 }) {
+        Button('主页')
+          .fontSize(14)
+          .fontColor('#FFFFFF')
+          .backgroundColor('rgba(0,0,0,0.3)')
+          .borderRadius(16)
+          .height(34)
+          .onClick(() => {
+            this.backToHome();
+          })
+
+        Button('重开')
+          .fontSize(14)
+          .fontColor('#FFFFFF')
+          .backgroundColor('rgba(34,139,34,0.8)')
+          .borderRadius(16)
+          .height(34)
+          .onClick(() => {
+            this.restartGame();
+          })
+
+        Text(`当前分数: ${this.viewModel.score}`)
+          .fontSize(14)
+          .fontColor('#FFFFFF')
+      }
+      .width(GameConstants.CANVAS_WIDTH)
+      .justifyContent(FlexAlign.SpaceBetween)
+      .margin({ bottom: 8 })
+
       // 游戏画布
       Canvas(this.canvasContext)
         .width(GameConstants.CANVAS_WIDTH)
@@ -185,6 +256,17 @@ struct FlappyBirdGame {
    */
   private startGame(): void {
     this.isPlaying = true;
+    this.viewModel = new GameViewModel();
+  }
+
+  private restartGame(): void {
+    this.viewModel = new GameViewModel();
+    this.viewModel.startGame();
+  }
+
+  private backToHome(): void {
+    this.cleanup();
+    this.isPlaying = false;
     this.viewModel = new GameViewModel();
   }
 

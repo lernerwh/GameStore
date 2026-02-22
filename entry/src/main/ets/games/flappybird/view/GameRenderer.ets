@@ -10,6 +10,7 @@ import { drawing } from '@kit.ArkGraphics2D';
 export class GameRenderer {
   private canvasWidth: number;
   private canvasHeight: number;
+  private animTime: number = 0;
 
   constructor(width: number = GameConstants.CANVAS_WIDTH, height: number = GameConstants.CANVAS_HEIGHT) {
     this.canvasWidth = width;
@@ -33,6 +34,8 @@ export class GameRenderer {
     gameState: GameState,
     groundY: number
   ): void {
+    this.animTime = Date.now();
+
     // 清空画布
     this.clearCanvas(canvas);
 
@@ -87,14 +90,19 @@ export class GameRenderer {
    * 绘制云朵
    */
   private drawClouds(canvas: CanvasRenderingContext2D): void {
-    canvas.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    canvas.fillStyle = 'rgba(255, 255, 255, 0.85)';
 
-    // 云朵1
-    this.drawCloud(canvas, 50, 80, 40);
-    // 云朵2
-    this.drawCloud(canvas, 200, 120, 35);
-    // 云朵3
-    this.drawCloud(canvas, 300, 60, 30);
+    // 云朵1（添加浮动动画）
+    const cloud1Y = 80 + Math.sin(this.animTime / 1000) * 10;
+    this.drawCloud(canvas, 50, cloud1Y, 40);
+
+    // 云朵2（添加浮动动画）
+    const cloud2Y = 120 + Math.sin(this.animTime / 1200 + 1) * 8;
+    this.drawCloud(canvas, 200, cloud2Y, 35);
+
+    // 云朵3（添加浮动动画）
+    const cloud3Y = 60 + Math.sin(this.animTime / 800 + 2) * 12;
+    this.drawCloud(canvas, 300, cloud3Y, 30);
   }
 
   /**
@@ -133,28 +141,42 @@ export class GameRenderer {
     height: number,
     isTop: boolean
   ): void {
+    // 管道阴影
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    canvas.fillRect(x + 3, y + 3, width, height);
+
     // 管道主体
     canvas.fillStyle = GameConstants.COLOR_PIPE;
     canvas.fillRect(x, y, width, height);
 
-    // 管道边框
+    // 管道边框（增强效果）
     canvas.strokeStyle = GameConstants.COLOR_PIPE_BORDER;
     canvas.lineWidth = 3;
     canvas.strokeRect(x, y, width, height);
 
     // 管道帽
-    const capHeight = 20;
-    const capWidth = width + 10;
-    const capX = x - 5;
+    const capHeight = 24;
+    const capWidth = width + 12;
+    const capX = x - 6;
     const capY = isTop ? y + height - capHeight : y;
+
+    // 管道帽阴影
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.12)';
+    canvas.fillRect(capX + 3, capY + 3, capWidth, capHeight);
 
     canvas.fillStyle = GameConstants.COLOR_PIPE;
     canvas.fillRect(capX, capY, capWidth, capHeight);
     canvas.strokeRect(capX, capY, capWidth, capHeight);
 
-    // 添加高光效果
-    canvas.fillStyle = 'rgba(255, 255, 255, 0.3)';
-    canvas.fillRect(x + 5, y, 8, height);
+    // 添加高光效果（增强）
+    canvas.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    canvas.fillRect(x + 6, y, 10, height);
+
+    // 添加纹理效果
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    for (let i = y + 20; i < y + height; i += 30) {
+      canvas.fillRect(x + 20, i, width - 25, 3);
+    }
   }
 
   /**
@@ -192,42 +214,65 @@ export class GameRenderer {
     // 应用旋转
     canvas.rotate(bird.rotation);
 
+    // 绘制小鸟阴影
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    canvas.beginPath();
+    canvas.ellipse(2, 2, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
+    canvas.fill();
+
     // 绘制小鸟身体
     canvas.fillStyle = GameConstants.COLOR_BIRD;
     canvas.beginPath();
     canvas.ellipse(0, 0, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
     canvas.fill();
 
-    // 绘制小鸟边框
+    // 绘制小鸟边框（增强效果）
     canvas.strokeStyle = '#DAA520';
-    canvas.lineWidth = 2;
+    canvas.lineWidth = 2.5;
     canvas.stroke();
+
+    // 高光效果
+    canvas.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    canvas.beginPath();
+    canvas.ellipse(-bird.width / 6, -bird.height / 6, bird.width / 5, bird.height / 6, -0.5, 0, Math.PI * 2);
+    canvas.fill();
 
     // 绘制眼睛
     canvas.fillStyle = '#FFFFFF';
     canvas.beginPath();
-    canvas.arc(bird.width / 4, -bird.height / 6, 6, 0, Math.PI * 2);
+    canvas.arc(bird.width / 4, -bird.height / 6, 7, 0, Math.PI * 2);
     canvas.fill();
 
     canvas.fillStyle = '#000000';
     canvas.beginPath();
-    canvas.arc(bird.width / 4 + 2, -bird.height / 6, 3, 0, Math.PI * 2);
+    canvas.arc(bird.width / 4 + 2, -bird.height / 6, 3.5, 0, Math.PI * 2);
     canvas.fill();
 
     // 绘制嘴巴
     canvas.fillStyle = '#FF6347';
     canvas.beginPath();
     canvas.moveTo(bird.width / 2, 0);
-    canvas.lineTo(bird.width / 2 + 10, 3);
-    canvas.lineTo(bird.width / 2, 6);
+    canvas.lineTo(bird.width / 2 + 12, 3);
+    canvas.lineTo(bird.width / 2, 7);
     canvas.closePath();
     canvas.fill();
 
-    // 绘制翅膀
+    // 绘制翅膀（添加扇动动画）
+    const wingFlap = Math.sin(this.animTime / 100) * 0.3;
+    const wingY = 5 + wingFlap * 10;
+    const wingAngle = wingFlap * 0.5;
+
+    canvas.save();
+    canvas.translate(-5, wingY);
+    canvas.rotate(wingAngle);
     canvas.fillStyle = '#FFA500';
     canvas.beginPath();
-    canvas.ellipse(-5, 5, 8, 5, 0, 0, Math.PI * 2);
+    canvas.ellipse(0, 0, 9, 5.5, 0, 0, Math.PI * 2);
     canvas.fill();
+    canvas.strokeStyle = '#CD853F';
+    canvas.lineWidth = 1;
+    canvas.stroke();
+    canvas.restore();
 
     canvas.restore();
   }
@@ -236,10 +281,14 @@ export class GameRenderer {
    * 绘制分数
    */
   private drawScore(canvas: CanvasRenderingContext2D, score: number): void {
+    canvas.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    canvas.shadowBlur = 6;
+    canvas.shadowOffsetX = 3;
+    canvas.shadowOffsetY = 3;
     canvas.fillStyle = '#FFFFFF';
     canvas.strokeStyle = '#000000';
-    canvas.lineWidth = 4;
-    canvas.font = 'bold 48px sans-serif';
+    canvas.lineWidth = 5;
+    canvas.font = 'bold 52px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'top';
 
@@ -251,6 +300,8 @@ export class GameRenderer {
     canvas.strokeText(text, x, y);
     // 填充
     canvas.fillText(text, x, y);
+    canvas.shadowColor = 'transparent';
+    canvas.shadowBlur = 0;
   }
 
   /**
@@ -258,14 +309,17 @@ export class GameRenderer {
    */
   private drawStartPrompt(canvas: CanvasRenderingContext2D): void {
     // 半透明背景
-    canvas.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.35)';
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+    // 添加脉冲动画
+    const pulse = Math.sin(this.animTime / 300) * 0.1 + 1;
 
     // 提示文字
     canvas.fillStyle = '#FFFFFF';
     canvas.strokeStyle = '#000000';
-    canvas.lineWidth = 3;
-    canvas.font = 'bold 48px sans-serif';
+    canvas.lineWidth = 4;
+    canvas.font = `bold ${Math.floor(52 * pulse)}px sans-serif`;
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
 
@@ -282,37 +336,53 @@ export class GameRenderer {
    */
   private drawGameOver(canvas: CanvasRenderingContext2D, score: number): void {
     // 半透明背景
-    canvas.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.6)';
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     // 游戏结束面板
-    const panelWidth = 300;
-    const panelHeight = 240;
+    const panelWidth = 320;
+    const panelHeight = 260;
     const panelX = (this.canvasWidth - panelWidth) / 2;
     const panelY = (this.canvasHeight - panelHeight) / 2;
+
+    // 面板阴影
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    this.drawRoundRect(canvas, panelX + 5, panelY + 5, panelWidth, panelHeight, 18);
 
     // 面板背景
     canvas.fillStyle = '#DEB887';
     canvas.strokeStyle = '#8B4513';
-    canvas.lineWidth = 4;
-    this.drawRoundRect(canvas, panelX, panelY, panelWidth, panelHeight, 15);
+    canvas.lineWidth = 5;
+    this.drawRoundRect(canvas, panelX, panelY, panelWidth, panelHeight, 18);
 
-    // 游戏结束文字
+    // 游戏结束文字（添加阴影）
+    canvas.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    canvas.shadowBlur = 4;
+    canvas.shadowOffsetX = 2;
+    canvas.shadowOffsetY = 2;
     canvas.fillStyle = '#8B0000';
-    canvas.font = 'bold 48px sans-serif';
+    canvas.font = 'bold 52px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
-    canvas.fillText('游戏结束', this.canvasWidth / 2, panelY + 60);
+    canvas.fillText('游戏结束', this.canvasWidth / 2, panelY + 70);
+    canvas.shadowColor = 'transparent';
+    canvas.shadowBlur = 0;
 
-    // 分数
+    // 分数（添加阴影）
+    canvas.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    canvas.shadowBlur = 3;
+    canvas.shadowOffsetX = 1;
+    canvas.shadowOffsetY = 1;
     canvas.fillStyle = '#000000';
-    canvas.font = 'bold 36px sans-serif';
-    canvas.fillText(`分数: ${score}`, this.canvasWidth / 2, panelY + 120);
+    canvas.font = 'bold 40px sans-serif';
+    canvas.fillText(`分数: ${score}`, this.canvasWidth / 2, panelY + 140);
+    canvas.shadowColor = 'transparent';
+    canvas.shadowBlur = 0;
 
     // 重新开始提示
     canvas.fillStyle = '#006400';
-    canvas.font = '32px sans-serif';
-    canvas.fillText('点击重新开始', this.canvasWidth / 2, panelY + 190);
+    canvas.font = 'bold 36px sans-serif';
+    canvas.fillText('点击重新开始', this.canvasWidth / 2, panelY + 210);
   }
 
   /**
