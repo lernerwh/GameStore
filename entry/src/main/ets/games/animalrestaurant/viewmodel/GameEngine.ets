@@ -205,7 +205,8 @@ export class GameEngine {
    * 更新所有菜品
    */
   private updateDishes(deltaTime: number): void {
-    for (const dish of this.dishes) {
+    for (let i = this.dishes.length - 1; i >= 0; i--) {
+      const dish = this.dishes[i];
       dish.update(deltaTime);
 
       // 菜品送达后，给顾客上菜
@@ -215,10 +216,7 @@ export class GameEngine {
           customer.serveFood();
         }
         // 从列表移除已送达的菜品
-        const index = this.dishes.indexOf(dish);
-        if (index > -1) {
-          this.dishes.splice(index, 1);
-        }
+        this.dishes.splice(i, 1);
       }
     }
   }
