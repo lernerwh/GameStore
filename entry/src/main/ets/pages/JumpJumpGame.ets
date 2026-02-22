@@ -4,6 +4,10 @@ import { GameState } from '../games/jumpjump/model/GameState';
 import { GameConstants } from '../games/jumpjump/model/GameConstants';
 import { router } from '@kit.ArkUI';
 
+interface PageParams {
+  autoStart?: boolean;
+}
+
 @Entry
 @Component
 struct JumpJumpGame {
@@ -13,6 +17,14 @@ struct JumpJumpGame {
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
+
+  aboutToAppear(): void {
+    // 检查是否需要自动开始游戏
+    const params = router.getParams() as PageParams;
+    if (params?.autoStart) {
+      this.startGame();
+    }
+  }
 
   aboutToDisappear(): void {
     this.cleanup();
@@ -98,7 +110,7 @@ struct JumpJumpGame {
       Canvas(this.canvasContext)
         .width(GameConstants.CANVAS_WIDTH)
         .height(GameConstants.CANVAS_HEIGHT)
-        .backgroundColor(GameConstants.COLOR_BACKGROUND)
+        .backgroundColor(GameConstants.COLOR_BACKGROUND_TOP)
         .onReady(() => { this.onCanvasReady(); })
         .onTouch((event: TouchEvent) => { this.onCanvasTouch(event); })
     }
@@ -152,7 +164,8 @@ struct JumpJumpGame {
       this.viewModel.platforms,
       this.viewModel.score,
       this.viewModel.gameState,
-      this.viewModel.cameraOffsetX,
+      this.viewModel.cameraWorldX,
+      this.viewModel.cameraWorldY,
       this.viewModel.chargeProgress
     );
   }

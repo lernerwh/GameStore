@@ -12,7 +12,8 @@ export class GameViewModel {
   @Track highScore: number;
   @Track player: Player;
   @Track platforms: Platform[];
-  @Track cameraOffsetX: number;
+  @Track cameraWorldX: number;
+  @Track cameraWorldY: number;
   @Track chargeProgress: number;
 
   private intervalId: number | null = null;
@@ -26,7 +27,8 @@ export class GameViewModel {
     this.highScore = 0;
     this.player = this.engine.getPlayer();
     this.platforms = this.engine.getPlatforms();
-    this.cameraOffsetX = 0;
+    this.cameraWorldX = 0;
+    this.cameraWorldY = 0;
     this.chargeProgress = 0;
   }
 
@@ -80,7 +82,8 @@ export class GameViewModel {
     this.score = this.engine.getScore();
     this.player = this.engine.getPlayer();
     this.platforms = [...this.engine.getPlatforms()];
-    this.cameraOffsetX = this.engine.getCameraOffsetX();
+    this.cameraWorldX = this.engine.getCameraWorldX();
+    this.cameraWorldY = this.engine.getCameraWorldY();
     this.chargeProgress = this.engine.getChargeProgress();
   }
 

@@ -1,11 +1,11 @@
-import { Player, Point } from '../model/Player';
+import { Player } from '../model/Player';
 import { Platform } from '../model/Platform';
-import { GameState, JumpDirection } from '../model/GameState';
+import { GameState } from '../model/GameState';
 import { GameConstants } from '../model/GameConstants';
 import { MathUtils } from '../model/MathUtils';
 
 /**
- * 游戏引擎 - 跳一跳核心逻辑
+ * 游戏引擎 - 跳一跳核心逻辑（2.5D版本）
  */
 export class GameEngine {
   private player: Player;
@@ -14,9 +14,12 @@ export class GameEngine {
   private gameState: GameState;
   private score: number;
   private chargeStartTime: number = 0;
-  private jumpDirection: JumpDirection = JumpDirection.RIGHT;
-  private cameraOffsetX: number = 0;
-  private targetCameraOffsetX: number = 0;
+
+  // 相机位置（世界坐标）
+  private cameraWorldX: number = 0;
+  private cameraWorldY: number = 0;
+  private targetCameraWorldX: number = 0;
+  private targetCameraWorldY: number = 0;
 
   constructor() {
     this.player = new Player();
@@ -27,14 +30,14 @@ export class GameEngine {
 
   private initPlatforms(): void {
     this.platforms = [];
-    // 创建初始方块
-    const firstPlatform = new Platform(GameConstants.CANVAS_WIDTH / 2, GameConstants.PLATFORM_Y, 80);
+    // 创建初始方块（世界坐标 0, 0）
+    const firstPlatform = new Platform(0, 0, 80, 0); // 固定第一个平台颜色
     this.platforms.push(firstPlatform);
 
-    // 预生成几个方块
+    // 预生成几个方块（沿45度斜向）
     for (let i = 0; i < 5; i++) {
       const lastPlatform = this.platforms[this.platforms.length - 1];
-      this.platforms.push(Platform.generateNext(lastPlatform.x));
+      this.platforms.push(Platform.generateNext(lastPlatform.worldX, lastPlatform.worldY));
     }
   }
 
@@ -68,8 +71,12 @@ export class GameEngine {
     return this.score;
   }
 
-  getCameraOffsetX(): number {
-    return this.cameraOffsetX;
+  getCameraWorldX(): number {
+    return this.cameraWorldX;
+  }
+
+  getCameraWorldY(): number {
+    return this.cameraWorldY;
   }
 
   getChargeProgress(): number {
@@ -87,12 +94,14 @@ export class GameEngine {
     this.gameState = GameState.PLAYING;
     this.score = 0;
     this.currentPlatformIndex = 0;
-    this.cameraOffsetX = 0;
-    this.targetCameraOffsetX = 0;
+    this.cameraWorldX = 0;
+    this.cameraWorldY = 0;
+    this.targetCameraWorldX = 0;
+    this.targetCameraWorldY = 0;
     this.initPlatforms();
 
     const firstPlatform = this.platforms[0];
-    this.player.reset(firstPlatform.x, GameConstants.PLATFORM_Y);
+    this.player.reset(firstPlatform.worldX, firstPlatform.worldY);
   }
 
   /**
@@ -115,9 +124,9 @@ export class GameEngine {
     }
 
     const chargeTime = Date.now() - this.chargeStartTime;
-    const jumpDistance = chargeTime; // 蓄力时间直接作为跳跃距离参考
+    const jumpDistance = chargeTime;
 
-    this.player.jump(jumpDistance, 1); // 向右跳
+    this.player.jump(jumpDistance);
     this.gameState = GameState.JUMPING;
   }
 
@@ -139,37 +148,44 @@ export class GameEngine {
   }
 
   private updateCamera(deltaTime: number): void {
-    // 平滑相机移动
-    const diff = this.targetCameraOffsetX - this.cameraOffsetX;
-    this.cameraOffsetX += diff * Math.min(deltaTime * 5, 1);
+    // 平滑相机移动（世界坐标）
+    const diffX = this.targetCameraWorldX - this.cameraWorldX;
+    const diffY = this.targetCameraWorldY - this.cameraWorldY;
+    const smoothing = Math.min(deltaTime * 5, 1);
+    this.cameraWorldX += diffX * smoothing;
+    this.cameraWorldY += diffY * smoothing;
   }
 
   private checkLanding(): void {
     const bottomCenter = this.player.getBottomCenter();
 
     // 检查是否开始下落
-    if (this.player.velocityY < 0) {
+    if (!this.player.isFalling()) {
       return; // 还在上升
     }
 
-    // 检查是否落在下一个方块上
-    const nextPlatform = this.getNextPlatform();
-    if (nextPlatform && nextPlatform.containsPoint(bottomCenter.x, bottomCenter.y)) {
-      // 成功落地
-      this.handleSuccessfulLanding(nextPlatform);
-    }
-    // 检查是否落在当前方块上（跳跃距离不够）
-    else if (this.getCurrentPlatform()?.containsPoint(bottomCenter.x, bottomCenter.y)) {
-      this.handleSuccessfulLanding(this.getCurrentPlatform()!);
-    }
-    // 检查是否掉落
-    else if (bottomCenter.y > GameConstants.PLATFORM_Y + 50) {
-      this.gameOver();
+    // 当玩家下落到平台高度时，检查是否在平台上
+    if (this.player.worldZ >= 0) {
+      const nextPlatform = this.getNextPlatform();
+      const currentPlatform = this.getCurrentPlatform();
+
+      // 检查是否落在下一个方块上
+      if (nextPlatform && nextPlatform.containsPoint(bottomCenter.worldX, bottomCenter.worldY)) {
+        this.handleSuccessfulLanding(nextPlatform);
+      }
+      // 检查是否落在当前方块上（跳跃距离不够）
+      else if (currentPlatform && currentPlatform.containsPoint(bottomCenter.worldX, bottomCenter.worldY)) {
+        this.handleSuccessfulLanding(currentPlatform);
+      }
+      // 棋子中心点不在任何台阶上，立即触发掉落
+      else {
+        this.gameOver();
+      }
     }
   }
 
   private handleSuccessfulLanding(platform: Platform): void {
-    this.player.land(GameConstants.PLATFORM_Y);
+    this.player.land();
 
     // 判断是否跳到了新方块
     const platformIndex = this.platforms.indexOf(platform);
@@ -178,13 +194,14 @@ export class GameEngine {
       this.score += GameConstants.SCORE_PER_LAND;
 
       // 检查是否完美落地
-      const distance = platform.distanceToCenter(this.player.x);
+      const distance = platform.distanceToCenter(this.player.worldX, this.player.worldY);
       if (distance < GameConstants.PERFECT_THRESHOLD) {
         this.score += GameConstants.SCORE_PERFECT_BONUS;
       }
 
-      // 更新相机目标位置
-      this.targetCameraOffsetX = platform.x - GameConstants.CANVAS_WIDTH / 2;
+      // 更新相机目标位置（跟随玩家到新平台）
+      this.targetCameraWorldX = platform.worldX;
+      this.targetCameraWorldY = platform.worldY;
 
       // 生成新方块
       this.generateNewPlatform();
@@ -195,7 +212,7 @@ export class GameEngine {
 
   private generateNewPlatform(): void {
     const lastPlatform = this.platforms[this.platforms.length - 1];
-    this.platforms.push(Platform.generateNext(lastPlatform.x));
+    this.platforms.push(Platform.generateNext(lastPlatform.worldX, lastPlatform.worldY));
 
     // 移除已经过的旧方块（保留当前方块之前的2个）
     while (this.currentPlatformIndex > 2) {
@@ -209,12 +226,14 @@ export class GameEngine {
   }
 
   reset(): void {
-    this.player.reset(GameConstants.CANVAS_WIDTH / 2, GameConstants.PLATFORM_Y);
+    this.player.reset(0, 0);
     this.score = 0;
     this.gameState = GameState.IDLE;
     this.currentPlatformIndex = 0;
-    this.cameraOffsetX = 0;
-    this.targetCameraOffsetX = 0;
+    this.cameraWorldX = 0;
+    this.cameraWorldY = 0;
+    this.targetCameraWorldX = 0;
+    this.targetCameraWorldY = 0;
     this.initPlatforms();
   }
 }

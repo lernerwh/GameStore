@@ -2,60 +2,97 @@ import { GameConstants } from './GameConstants';
 import { Rect, MathUtils } from './MathUtils';
 
 /**
- * 平台/方块实体类
+ * 平台/方块实体类 - 支持2.5D世界坐标
  */
 export class Platform {
-  x: number;           // 方块中心X坐标
-  y: number;           // 方块顶部Y坐标
-  width: number;       // 方块宽度
-  height: number;      // 方块高度
+  worldX: number;      // 世界坐标X
+  worldY: number;      // 世界坐标Y
+  worldZ: number;      // 世界坐标Z（高度，用于渲染）
+  size: number;        // 方块尺寸
+  colorIndex: number;  // 颜色索引
 
-  constructor(x: number, y: number, width?: number) {
-    this.x = x;
-    this.y = y;
-    this.width = width ?? MathUtils.randomInt(GameConstants.PLATFORM_MIN_SIZE, GameConstants.PLATFORM_MAX_SIZE);
-    this.height = GameConstants.PLATFORM_HEIGHT;
+  constructor(worldX: number, worldY: number, size?: number, colorIndex?: number) {
+    this.worldX = worldX;
+    this.worldY = worldY;
+    this.worldZ = 0;
+    this.size = size ?? MathUtils.randomInt(GameConstants.PLATFORM_MIN_SIZE, GameConstants.PLATFORM_MAX_SIZE);
+    this.colorIndex = colorIndex ?? MathUtils.randomInt(0, GameConstants.PLATFORM_COLORS.length - 1);
   }
 
   /**
-   * 获取方块边界
+   * 获取平台颜色
    */
-  getBounds(): Rect {
-    return {
-      x: this.x - this.width / 2,
-      y: this.y,
-      width: this.width,
-      height: this.height
-    };
+  getColor(): string {
+    return GameConstants.PLATFORM_COLORS[this.colorIndex];
   }
 
   /**
-   * 检测点是否在方块顶部
-   * @param pointX 点的X坐标
-   * @param pointY 点的Y坐标
-   * @param threshold 允许的Y偏移阈值
+   * 获取平台较暗颜色（用于右侧面）
    */
-  containsPoint(pointX: number, pointY: number, threshold: number = 20): boolean {
-    const bounds = this.getBounds();
-    const inX = pointX >= bounds.x && pointX <= bounds.x + bounds.width;
-    const inY = pointY >= bounds.y - threshold && pointY <= bounds.y + threshold;
-    return inX && inY;
+  getDarkColor(): string {
+    return this.darkenColor(this.getColor(), 0.3);
   }
 
   /**
-   * 计算点到方块中心的距离
+   * 获取平台中等颜色（用于左侧面）
    */
-  distanceToCenter(pointX: number): number {
-    return Math.abs(pointX - this.x);
+  getMediumColor(): string {
+    return this.darkenColor(this.getColor(), 0.15);
   }
 
   /**
-   * 生成下一个方块
-   * @param currentX 当前方块X坐标
+   * 使颜色变暗
    */
-  static generateNext(currentX: number): Platform {
+  private darkenColor(hex: string, factor: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+
+    const newR = Math.floor(r * (1 - factor));
+    const newG = Math.floor(g * (1 - factor));
+    const newB = Math.floor(b * (1 - factor));
+
+    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+  }
+
+  /**
+   * 检测点是否在平台顶部（使用世界坐标距离检测）
+   * @param pointWorldX 点的世界X坐标
+   * @param pointWorldY 点的世界Y坐标
+   */
+  containsPoint(pointWorldX: number, pointWorldY: number): boolean {
+    // 在2.5D视角中，平台是一个正方形区域
+    // 检测点到平台中心的距离是否在尺寸的一半范围内
+    const dx = pointWorldX - this.worldX;
+    const dy = pointWorldY - this.worldY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const halfSize = this.size / 2;
+
+    // 精确检测：只在平台范围内才算
+    return distance < halfSize;
+  }
+
+  /**
+   * 计算点到平台中心的距离（世界坐标）
+   */
+  distanceToCenter(pointWorldX: number, pointWorldY: number): number {
+    const dx = pointWorldX - this.worldX;
+    const dy = pointWorldY - this.worldY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  /**
+   * 生成下一个方块（沿45度斜向）
+   * @param currentWorldX 当前方块世界X坐标
+   * @param currentWorldY 当前方块世界Y坐标
+   */
+  static generateNext(currentWorldX: number, currentWorldY: number): Platform {
     const gap = MathUtils.randomInt(GameConstants.PLATFORM_GAP_MIN, GameConstants.PLATFORM_GAP_MAX);
-    const newX = currentX + gap;
-    return new Platform(newX, GameConstants.PLATFORM_Y);
+
+    // 沿45度角方向生成（x和y同时增加）
+    const newWorldX = currentWorldX + gap;
+    const newWorldY = currentWorldY + gap;
+
+    return new Platform(newWorldX, newWorldY);
   }
 }
