@@ -50,79 +50,89 @@ struct AnimalRestaurantGame {
   @Builder
   HomeView() {
     Column() {
-      // 返回按钮
-      Row() {
-        Button() {
-          Text('← 返回')
+      Scroll() {
+        Column() {
+          // 返回按钮
+          Row() {
+            Button() {
+              Text('← 返回')
+                .fontSize(16)
+                .fontColor('#FFFFFF')
+            }
+            .backgroundColor('rgba(255,255,255,0.1)')
+            .borderRadius(20)
+            .height(36)
+            .padding({ left: 15, right: 15 })
+            .onClick(() => { router.back(); })
+          }
+          .width('100%')
+          .padding({ left: 20, top: 50 })
+
+          Text('🐾 动物餐厅 🐾')
+            .fontSize(36)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#8B4513')
+            .margin({ top: 30, bottom: 10 })
+
+          Text('Animal Restaurant')
             .fontSize(16)
+            .fontColor('#A0522D')
+            .margin({ bottom: 30 })
+
+          // 可爱的动物图标
+          Row() {
+            Text('🐱').fontSize(40)
+            Text('🐕').fontSize(40)
+            Text('🐰').fontSize(40)
+            Text('🐻').fontSize(40)
+            Text('🦊').fontSize(40)
+            Text('🐼').fontSize(40)
+          }
+          .margin({ bottom: 30 })
+
+          // 游戏简介
+          Column() {
+            Text('欢迎来到温馨的动物餐厅！')
+              .fontSize(18)
+              .fontColor('#5D4037')
+              .margin({ bottom: 10 })
+
+            Text('招待可爱的动物顾客')
+              .fontSize(14)
+              .fontColor('#795548')
+            Text('烹饪美味的菜肴')
+              .fontSize(14)
+              .fontColor('#795548')
+            Text('赚取金币升级餐厅')
+              .fontSize(14)
+              .fontColor('#795548')
+          }
+          .margin({ bottom: 40 })
+
+          // 开始按钮
+          Button('开始营业')
+            .fontSize(24)
             .fontColor('#FFFFFF')
+            .backgroundColor('#FF9800')
+            .borderRadius(30)
+            .width(200)
+            .height(50)
+            .shadow({ radius: 10, color: '#FF9800', offsetX: 0, offsetY: 5 })
+            .onClick(() => { this.startGame(); })
+
+          // 提示
+          Text('点击画面与游戏互动')
+            .fontSize(12)
+            .fontColor('#9E9E9E')
+            .margin({ top: 30 })
         }
-        .backgroundColor('rgba(255,255,255,0.1)')
-        .borderRadius(20)
-        .height(36)
-        .padding({ left: 15, right: 15 })
-        .onClick(() => { router.back(); })
+        .width('100%')
+        .padding({ bottom: 48 })
       }
       .width('100%')
-      .padding({ left: 20, top: 50 })
-
-      Text('🐾 动物餐厅 🐾')
-        .fontSize(36)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#8B4513')
-        .margin({ top: 30, bottom: 10 })
-
-      Text('Animal Restaurant')
-        .fontSize(16)
-        .fontColor('#A0522D')
-        .margin({ bottom: 30 })
-
-      // 可爱的动物图标
-      Row() {
-        Text('🐱').fontSize(40)
-        Text('🐕').fontSize(40)
-        Text('🐰').fontSize(40)
-        Text('🐻').fontSize(40)
-        Text('🦊').fontSize(40)
-        Text('🐼').fontSize(40)
-      }
-      .margin({ bottom: 30 })
-
-      // 游戏简介
-      Column() {
-        Text('欢迎来到温馨的动物餐厅！')
-          .fontSize(18)
-          .fontColor('#5D4037')
-          .margin({ bottom: 10 })
-
-        Text('招待可爱的动物顾客')
-          .fontSize(14)
-          .fontColor('#795548')
-        Text('烹饪美味的菜肴')
-          .fontSize(14)
-          .fontColor('#795548')
-        Text('赚取金币升级餐厅')
-          .fontSize(14)
-          .fontColor('#795548')
-      }
-      .margin({ bottom: 40 })
-
-      // 开始按钮
-      Button('开始营业')
-        .fontSize(24)
-        .fontColor('#FFFFFF')
-        .backgroundColor('#FF9800')
-        .borderRadius(30)
-        .width(200)
-        .height(50)
-        .shadow({ radius: 10, color: '#FF9800', offsetX: 0, offsetY: 5 })
-        .onClick(() => { this.startGame(); })
-
-      // 提示
-      Text('点击画面与游戏互动')
-        .fontSize(12)
-        .fontColor('#9E9E9E')
-        .margin({ top: 30 })
+      .height('100%')
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring)
     }
     .width('100%')
     .height('100%')

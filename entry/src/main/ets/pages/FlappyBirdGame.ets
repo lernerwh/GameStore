@@ -64,65 +64,75 @@ struct FlappyBirdGame {
   @Builder
   HomeView() {
     Column() {
-      // 返回按钮
-      Row() {
-        Button() {
-          Text('← 返回')
-            .fontSize(16)
+      Scroll() {
+        Column() {
+          // 返回按钮
+          Row() {
+            Button() {
+              Text('← 返回')
+                .fontSize(16)
+                .fontColor('#FFFFFF')
+            }
+            .backgroundColor('rgba(0,0,0,0.2)')
+            .borderRadius(20)
+            .height(36)
+            .padding({ left: 15, right: 15 })
+            .onClick(() => { router.back(); })
+          }
+          .width('100%')
+          .padding({ left: 20, top: 50 })
+
+          // 标题
+          Text('Flappy Bird')
+            .fontSize(48)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#FFD700')
+            .textShadow({
+              radius: 4,
+              color: '#000000',
+              offsetX: 2,
+              offsetY: 2
+            })
+            .margin({ top: 30, bottom: 20 })
+
+          // 小鸟图标
+          Text('🐦')
+            .fontSize(80)
+            .margin({ bottom: 40 })
+
+          // 最高分
+          Text(`最高分: ${this.highScore}`)
+            .fontSize(24)
+            .fontColor('#333333')
+            .margin({ bottom: 40 })
+
+          // 开始游戏按钮
+          Button('开始游戏')
+            .fontSize(24)
             .fontColor('#FFFFFF')
+            .backgroundColor('#228B22')
+            .borderRadius(25)
+            .width(200)
+            .height(50)
+            .onClick(() => {
+              this.startGame();
+            })
+
+          // 说明文字
+          Text('点击屏幕让小鸟跳跃\n避开管道获得分数')
+            .fontSize(16)
+            .fontColor('#666666')
+            .textAlign(TextAlign.Center)
+            .margin({ top: 40 })
+            .lineHeight(24)
         }
-        .backgroundColor('rgba(0,0,0,0.2)')
-        .borderRadius(20)
-        .height(36)
-        .padding({ left: 15, right: 15 })
-        .onClick(() => { router.back(); })
+        .width('100%')
+        .padding({ bottom: 48 })
       }
       .width('100%')
-      .padding({ left: 20, top: 50 })
-
-      // 标题
-      Text('Flappy Bird')
-        .fontSize(48)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#FFD700')
-        .textShadow({
-          radius: 4,
-          color: '#000000',
-          offsetX: 2,
-          offsetY: 2
-        })
-        .margin({ top: 30, bottom: 20 })
-
-      // 小鸟图标
-      Text('🐦')
-        .fontSize(80)
-        .margin({ bottom: 40 })
-
-      // 最高分
-      Text(`最高分: ${this.highScore}`)
-        .fontSize(24)
-        .fontColor('#333333')
-        .margin({ bottom: 40 })
-
-      // 开始游戏按钮
-      Button('开始游戏')
-        .fontSize(24)
-        .fontColor('#FFFFFF')
-        .backgroundColor('#228B22')
-        .borderRadius(25)
-        .width(200)
-        .height(50)
-        .onClick(() => {
-          this.startGame();
-        })
-
-      // 说明文字
-      Text('点击屏幕让小鸟跳跃\n避开管道获得分数')
-        .fontSize(16)
-        .fontColor('#666666')
-        .textAlign(TextAlign.Center)
-        .margin({ top: 40 })
-        .lineHeight(24)
+      .height('100%')
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring)
     }
     .width('100%')
     .height('100%')

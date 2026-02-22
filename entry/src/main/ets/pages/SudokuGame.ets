@@ -46,105 +46,115 @@ struct SudokuGame {
   @Builder
   HomeView() {
     Column() {
-      // 返回按钮
-      Row() {
-        Button() {
-          Text('← 返回')
-            .fontSize(16)
+      Scroll() {
+        Column() {
+          // 返回按钮
+          Row() {
+            Button() {
+              Text('← 返回')
+                .fontSize(16)
+                .fontColor('#FFFFFF')
+            }
+            .backgroundColor('rgba(0,0,0,0.2)')
+            .borderRadius(20)
+            .height(36)
+            .padding({ left: 15, right: 15 })
+            .onClick(() => { router.back(); })
+          }
+          .width('100%')
+          .padding({ left: 20, top: 50 })
+
+          Text('数独')
+            .fontSize(48)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#1976D2')
+            .margin({ top: 30, bottom: 10 })
+
+          Text('Sudoku')
+            .fontSize(18)
+            .fontColor('#666666')
+            .margin({ bottom: 30 })
+
+          // 数独图标
+          Column() {
+            Row() {
+              Text('1').fontSize(20).fontColor('#1976D2')
+              Text(' ').fontSize(20)
+              Text('3').fontSize(20).fontColor('#1976D2')
+            }
+            Row() {
+              Text(' ').fontSize(20)
+              Text('5').fontSize(20).fontColor('#1976D2')
+              Text(' ').fontSize(20)
+            }
+            Row() {
+              Text('7').fontSize(20).fontColor('#1976D2')
+              Text(' ').fontSize(20)
+              Text('9').fontSize(20).fontColor('#1976D2')
+            }
+          }
+          .width(100)
+          .height(100)
+          .justifyContent(FlexAlign.Center)
+          .borderRadius(10)
+          .border({ width: 2, color: '#1976D2' })
+          .margin({ bottom: 40 })
+
+          // 难度选择
+          Text('选择难度')
+            .fontSize(18)
+            .fontColor('#333333')
+            .margin({ bottom: 15 })
+
+          Row({ space: 15 }) {
+            ForEach(['简单', '中等', '困难'], (level: string, index: number) => {
+              Button(level)
+                .fontSize(16)
+                .fontColor(this.selectedDifficulty === index ? '#FFFFFF' : '#1976D2')
+                .backgroundColor(this.selectedDifficulty === index ? '#1976D2' : '#E3F2FD')
+                .borderRadius(20)
+                .width(80)
+                .height(36)
+                .onClick(() => { this.selectedDifficulty = index; })
+            })
+          }
+          .margin({ bottom: 40 })
+
+          Button('开始游戏')
+            .fontSize(22)
             .fontColor('#FFFFFF')
+            .backgroundColor('#1976D2')
+            .borderRadius(30)
+            .width(180)
+            .height(50)
+            .onClick(() => { this.startGame(); })
+
+          // 说明
+          Column() {
+            Text('游戏规则')
+              .fontSize(16)
+              .fontColor('#333333')
+              .margin({ bottom: 10 })
+
+            Text('• 每行、每列、每个3x3宫格内1-9不重复')
+              .fontSize(14)
+              .fontColor('#666666')
+            Text('• 点击空格选择，再点击数字填入')
+              .fontSize(14)
+              .fontColor('#666666')
+            Text('• 蓝色数字为初始固定数字')
+              .fontSize(14)
+              .fontColor('#666666')
+          }
+          .margin({ top: 40 })
         }
-        .backgroundColor('rgba(0,0,0,0.2)')
-        .borderRadius(20)
-        .height(36)
-        .padding({ left: 15, right: 15 })
-        .onClick(() => { router.back(); })
+        .width('100%')
+        .padding({ bottom: 48 })
       }
       .width('100%')
-      .padding({ left: 20, top: 50 })
-
-      Text('数独')
-        .fontSize(48)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#1976D2')
-        .margin({ top: 30, bottom: 10 })
-
-      Text('Sudoku')
-        .fontSize(18)
-        .fontColor('#666666')
-        .margin({ bottom: 30 })
-
-      // 数独图标
-      Column() {
-        Row() {
-          Text('1').fontSize(20).fontColor('#1976D2')
-          Text(' ').fontSize(20)
-          Text('3').fontSize(20).fontColor('#1976D2')
-        }
-        Row() {
-          Text(' ').fontSize(20)
-          Text('5').fontSize(20).fontColor('#1976D2')
-          Text(' ').fontSize(20)
-        }
-        Row() {
-          Text('7').fontSize(20).fontColor('#1976D2')
-          Text(' ').fontSize(20)
-          Text('9').fontSize(20).fontColor('#1976D2')
-        }
-      }
-      .width(100)
-      .height(100)
-      .justifyContent(FlexAlign.Center)
-      .borderRadius(10)
-      .border({ width: 2, color: '#1976D2' })
-      .margin({ bottom: 40 })
-
-      // 难度选择
-      Text('选择难度')
-        .fontSize(18)
-        .fontColor('#333333')
-        .margin({ bottom: 15 })
-
-      Row({ space: 15 }) {
-        ForEach(['简单', '中等', '困难'], (level: string, index: number) => {
-          Button(level)
-            .fontSize(16)
-            .fontColor(this.selectedDifficulty === index ? '#FFFFFF' : '#1976D2')
-            .backgroundColor(this.selectedDifficulty === index ? '#1976D2' : '#E3F2FD')
-            .borderRadius(20)
-            .width(80)
-            .height(36)
-            .onClick(() => { this.selectedDifficulty = index; })
-        })
-      }
-      .margin({ bottom: 40 })
-
-      Button('开始游戏')
-        .fontSize(22)
-        .fontColor('#FFFFFF')
-        .backgroundColor('#1976D2')
-        .borderRadius(30)
-        .width(180)
-        .height(50)
-        .onClick(() => { this.startGame(); })
-
-      // 说明
-      Column() {
-        Text('游戏规则')
-          .fontSize(16)
-          .fontColor('#333333')
-          .margin({ bottom: 10 })
-
-        Text('• 每行、每列、每个3x3宫格内1-9不重复')
-          .fontSize(14)
-          .fontColor('#666666')
-        Text('• 点击空格选择，再点击数字填入')
-          .fontSize(14)
-          .fontColor('#666666')
-        Text('• 蓝色数字为初始固定数字')
-          .fontSize(14)
-          .fontColor('#666666')
-      }
-      .margin({ top: 40 })
+      .height('100%')
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring)
     }
     .width('100%')
     .height('100%')
