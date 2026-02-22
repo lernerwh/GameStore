@@ -2,7 +2,6 @@ import { Player } from '../model/Player';
 import { Platform } from '../model/Platform';
 import { GameState } from '../model/GameState';
 import { GameConstants } from '../model/GameConstants';
-import { MathUtils } from '../model/MathUtils';
 
 /**
  * 游戏引擎 - 跳一跳核心逻辑（2.5D版本）

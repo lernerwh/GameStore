@@ -2,7 +2,7 @@ import { Customer } from '../model/Customer';
 import { Table } from '../model/Table';
 import { Dish } from '../model/Dish';
 import { Restaurant } from '../model/Restaurant';
-import { GameConstants, GameState, DishType, CustomerState, TableState } from '../model/GameConstants';
+import { GameConstants, GameState, CustomerState, TableState } from '../model/GameConstants';
 
 /**
  * 游戏引擎 - 动物餐厅核心逻辑
