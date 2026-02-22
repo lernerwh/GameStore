@@ -1,6 +1,5 @@
 import FormExtensionAbility from '@ohos.app.form.FormExtensionAbility';
 import formProvider from '@ohos.app.form.formProvider';
-import formInfo from '@ohos.app.form.formInfo';
 import formBindingData from '@ohos.app.form.formBindingData';
 import { Want } from '@kit.AbilityKit';
 
@@ -16,11 +15,11 @@ interface FormData {
  * 游戏中心卡片服务
  */
 export default class GameCatalogFormAbility extends FormExtensionAbility {
-  onAddForm(want: Want): formBindingData.FormBindingData {
+  onAddForm(_want: Want): formBindingData.FormBindingData {
     // 创建卡片时调用
     console.info('GameCatalogFormAbility onAddForm');
 
-    let formData: FormData = {
+    const formData: FormData = {
       title: '游戏中心',
       icon: '🎮'
     };
@@ -32,23 +31,23 @@ export default class GameCatalogFormAbility extends FormExtensionAbility {
     // 更新卡片时调用
     console.info('GameCatalogFormAbility onUpdateForm');
 
-    let formData: FormData = {
+    const formData: FormData = {
       title: '游戏中心',
       icon: '🎮'
     };
 
-    let formBindingDataObj = formBindingData.createFormBindingData(formData);
+    const formBindingDataObj = formBindingData.createFormBindingData(formData);
     formProvider.updateForm(formId, formBindingDataObj).catch((err: Error) => {
       console.error('Failed to update form:', err.message);
     });
   }
 
-  onRemoveForm(formId: string): void {
+  onRemoveForm(_formId: string): void {
     // 删除卡片时调用
     console.info('GameCatalogFormAbility onRemoveForm');
   }
 
-  onFormEvent(formId: string, message: string): void {
+  onFormEvent(_formId: string, message: string): void {
     // 卡片事件处理
     console.info('GameCatalogFormAbility onFormEvent: ' + message);
   }
