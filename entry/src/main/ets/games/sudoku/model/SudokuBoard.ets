@@ -156,26 +156,46 @@ export class SudokuBoard {
   }
 
   /**
-   * 移除指定数量的数字
+   * 移除指定数量的数字（均匀分布版）
    */
   private removeNumbers(count: number): void {
-    let removed = 0;
-    const positions: [number, number][] = [];
-    for (let i = 0; i < 9; i++) {
-      for (let j = 0; j < 9; j++) {
-        positions.push([i, j]);
+    // 计算每个3x3宫格需要保留的最少数字
+    // 81个格子，移除count个，保留 81-count 个
+    // 9个宫格，每个宫格平均保留 (81-count)/9 个
+    const totalCells = 81;
+    const keepCount = totalCells - count;
+    const minPerBox = Math.max(1, Math.floor(keepCount / 9));
+
+    // 为每个宫格分配要保留的位置
+    const preservedPositions = new Set<string>();
+
+    for (let boxRow = 0; boxRow < 3; boxRow++) {
+      for (let boxCol = 0; boxCol < 3; boxCol++) {
+        const positions: [number, number][] = [];
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            const row = boxRow * 3 + i;
+            const col = boxCol * 3 + j;
+            positions.push([row, col]);
+          }
+        }
+        this.shuffleArray(positions);
+
+        // 保留 minPerBox 到 minPerBox+1 个位置
+        const preserveCount = Math.random() < 0.5 ? minPerBox : minPerBox + 1;
+        for (let k = 0; k < preserveCount && k < positions.length; k++) {
+          preservedPositions.add(`${positions[k][0]},${positions[k][1]}`);
+        }
       }
     }
-    this.shuffleArray(positions);
 
-    for (let i = 0; i < positions.length; i++) {
-      if (removed >= count) break;
-      const row = positions[i][0];
-      const col = positions[i][1];
-      if (this.cells[row][col].hasValue()) {
-        this.cells[row][col].value = 0;
-        this.cells[row][col].fixed = false;
-        removed++;
+    // 移除不在保留列表中的数字
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (!preservedPositions.has(`${i},${j}`)) {
+          this.cells[i][j].value = 0;
+          this.cells[i][j].fixed = false;
+        }
       }
     }
   }
