@@ -19,6 +19,7 @@ export interface JoystickRenderState {
 export class GameRenderer {
   private canvasWidth: number = GameConstants.CANVAS_WIDTH;
   private canvasHeight: number = GameConstants.CANVAS_HEIGHT;
+  private animTime: number = 0;
 
   render(
     canvas: CanvasRenderingContext2D,
@@ -31,6 +32,7 @@ export class GameRenderer {
     camera: Camera,
     joystickState?: JoystickRenderState
   ): void {
+    this.animTime = Date.now();
     this.clearCanvas(canvas);
     this.drawBackground(canvas);
 
@@ -80,26 +82,36 @@ export class GameRenderer {
     const imageKey = imageManager.getPlayerImageKey(player.evolutionLevel);
     const cachedImage = imageManager.getCachedImage(imageKey);
 
-    // 玩家光晕
+    // 玩家光晕（添加脉冲动画）
+    const pulse = Math.sin(this.animTime / 400) * 0.1 + 1;
+    const glowRadius = radius * 1.5 * pulse;
     const glowGradient = canvas.createRadialGradient(
       screenPos.x, screenPos.y, 0,
-      screenPos.x, screenPos.y, radius * 1.5
+      screenPos.x, screenPos.y, glowRadius
     );
-    glowGradient.addColorStop(0, 'rgba(255, 215, 0, 0.3)');
+    glowGradient.addColorStop(0, 'rgba(255, 215, 0, 0.35)');
     glowGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
     canvas.fillStyle = glowGradient;
     canvas.beginPath();
-    canvas.arc(screenPos.x, screenPos.y, radius * 1.5, 0, Math.PI * 2);
+    canvas.arc(screenPos.x, screenPos.y, glowRadius, 0, Math.PI * 2);
+    canvas.fill();
+
+    // 玩家阴影
+    canvas.beginPath();
+    canvas.arc(screenPos.x + 2, screenPos.y + 2, radius, 0, Math.PI * 2);
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.15)';
     canvas.fill();
 
     if (cachedImage) {
       // 使用图片绘制
+      const breathe = Math.sin(this.animTime / 500) * 0.03 + 1;
+      const imageRadius = radius * 2 * breathe;
       canvas.drawImage(
         cachedImage,
-        screenPos.x - radius,
-        screenPos.y - radius,
-        radius * 2,
-        radius * 2
+        screenPos.x - imageRadius / 2,
+        screenPos.y - imageRadius / 2,
+        imageRadius,
+        imageRadius
       );
     } else {
       // 回退到圆形绘制
@@ -109,19 +121,32 @@ export class GameRenderer {
       canvas.fill();
     }
 
-    // 玩家边框
+    // 玩家边框（增强效果）
     canvas.strokeStyle = '#FFD700';
-    canvas.lineWidth = 2;
+    canvas.lineWidth = 3;
     canvas.beginPath();
     canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
     canvas.stroke();
 
-    // 玩家名称
+    // 高光
+    canvas.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    canvas.lineWidth = 2;
+    canvas.beginPath();
+    canvas.arc(screenPos.x, screenPos.y, radius * 0.8, 0, Math.PI * 2);
+    canvas.stroke();
+
+    // 玩家名称（添加阴影）
+    canvas.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    canvas.shadowBlur = 4;
+    canvas.shadowOffsetX = 2;
+    canvas.shadowOffsetY = 2;
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 36px sans-serif';
+    canvas.font = 'bold 38px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
-    canvas.fillText(player.getName(), screenPos.x, screenPos.y - radius - 20);
+    canvas.fillText(player.getName(), screenPos.x, screenPos.y - radius - 22);
+    canvas.shadowColor = 'transparent';
+    canvas.shadowBlur = 0;
   }
 
   private drawCreatures(canvas: CanvasRenderingContext2D, creatures: Creature[], camera: Camera, player: Player): void {
@@ -138,13 +163,38 @@ export class GameRenderer {
         continue;
       }
 
-      // 根据相对大小决定边框颜色
+      // 根据相对大小决定边框颜色和效果
       let borderColor: string;
+      let glowColor: string | undefined;
       if (creature.evolutionLevel <= player.evolutionLevel) {
         borderColor = '#90EE90'; // 可以吃 - 绿色
+        glowColor = 'rgba(144, 238, 144, 0.2)';
       } else {
         borderColor = '#FF6B6B'; // 危险 - 红色
+        glowColor = 'rgba(255, 107, 107, 0.2)';
       }
+
+      // 危险生物添加脉冲效果
+      if (creature.evolutionLevel > player.evolutionLevel) {
+        const pulse = Math.sin(this.animTime / 300) * 0.15 + 1;
+        const pulseRadius = radius * 1.2 * pulse;
+        const pulseGradient = canvas.createRadialGradient(
+          screenPos.x, screenPos.y, 0,
+          screenPos.x, screenPos.y, pulseRadius
+        );
+        pulseGradient.addColorStop(0, glowColor || 'rgba(255, 107, 107, 0.3)');
+        pulseGradient.addColorStop(1, 'rgba(255, 107, 107, 0)');
+        canvas.fillStyle = pulseGradient;
+        canvas.beginPath();
+        canvas.arc(screenPos.x, screenPos.y, pulseRadius, 0, Math.PI * 2);
+        canvas.fill();
+      }
+
+      // 阴影
+      canvas.beginPath();
+      canvas.arc(screenPos.x + 1, screenPos.y + 1, radius, 0, Math.PI * 2);
+      canvas.fillStyle = 'rgba(0, 0, 0, 0.12)';
+      canvas.fill();
 
       const imageKey = imageManager.getCreatureImageKey(creature.evolutionLevel);
       const cachedImage = imageManager.getCachedImage(imageKey);
@@ -166,9 +216,9 @@ export class GameRenderer {
         canvas.fill();
       }
 
-      // 边框
+      // 边框（增强效果）
       canvas.strokeStyle = borderColor;
-      canvas.lineWidth = 2;
+      canvas.lineWidth = 2.5;
       canvas.beginPath();
       canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
       canvas.stroke();
@@ -246,25 +296,35 @@ export class GameRenderer {
   }
 
   private drawHUD(canvas: CanvasRenderingContext2D, player: Player, score: number, playTime: number): void {
-    // 左上角信息
-    canvas.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    // 左上角信息（增强背景）
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.65)';
     canvas.fillRect(5, 5, 260, 170);
+    canvas.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    canvas.lineWidth = 1.5;
+    canvas.strokeRect(5, 5, 260, 170);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 42px sans-serif';
+    canvas.font = 'bold 44px sans-serif';
     canvas.textAlign = 'left';
     canvas.textBaseline = 'top';
-    canvas.fillText(`分数: ${score}`, 15, 12);
+    canvas.fillText(`分数: ${score}`, 15, 10);
 
     // 游戏时间
     const minutes = Math.floor(playTime / 60);
     const seconds = Math.floor(playTime % 60);
-    canvas.font = '34px sans-serif';
-    canvas.fillText(`时间: ${minutes}:${seconds.toString().padStart(2, '0')}`, 15, 58);
+    canvas.font = '36px sans-serif';
+    canvas.fillText(`时间: ${minutes}:${seconds.toString().padStart(2, '0')}`, 15, 60);
 
-    // 当前进化等级
+    // 当前进化等级（添加阴影）
+    canvas.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    canvas.shadowBlur = 3;
+    canvas.shadowOffsetX = 1;
+    canvas.shadowOffsetY = 1;
     canvas.fillStyle = player.getColor();
-    canvas.fillText(`${player.getName()}`, 15, 100);
+    canvas.font = 'bold 36px sans-serif';
+    canvas.fillText(`${player.getName()}`, 15, 105);
+    canvas.shadowColor = 'transparent';
+    canvas.shadowBlur = 0;
 
     // 成长进度条
     this.drawGrowthProgress(canvas, player, score);
@@ -318,49 +378,84 @@ export class GameRenderer {
     const baseRadius = 42;
     const handleRadius = 24;
 
+    // 计算摇杆强度用于视觉反馈
+    const deltaX = joystickState.handleX - joystickState.centerX;
+    const deltaY = joystickState.handleY - joystickState.centerY;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const intensity = Math.min(1, distance / this.joystickMaxDistance);
+
+    // 摇杆底座（添加外发光效果）
+    const baseGlowRadius = baseRadius * (1 + intensity * 0.2);
+    const baseGlowGradient = canvas.createRadialGradient(
+      joystickState.centerX, joystickState.centerY, 0,
+      joystickState.centerX, joystickState.centerY, baseGlowRadius
+    );
+    baseGlowGradient.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+    baseGlowGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    canvas.fillStyle = baseGlowGradient;
+    canvas.beginPath();
+    canvas.arc(joystickState.centerX, joystickState.centerY, baseGlowRadius, 0, Math.PI * 2);
+    canvas.fill();
+
     // 摇杆底座
-    canvas.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    canvas.fillStyle = 'rgba(255, 255, 255, 0.15)';
     canvas.beginPath();
     canvas.arc(joystickState.centerX, joystickState.centerY, baseRadius, 0, Math.PI * 2);
     canvas.fill();
 
-    canvas.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-    canvas.lineWidth = 2;
+    canvas.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    canvas.lineWidth = 2.5;
     canvas.beginPath();
     canvas.arc(joystickState.centerX, joystickState.centerY, baseRadius, 0, Math.PI * 2);
     canvas.stroke();
 
-    // 摇杆连线
-    canvas.strokeStyle = 'rgba(255, 255, 255, 0.45)';
-    canvas.lineWidth = 3;
+    // 摇杆连线（增强效果）
+    canvas.strokeStyle = `rgba(255, 255, 255, ${0.45 + intensity * 0.3})`;
+    canvas.lineWidth = 3 + intensity * 2;
     canvas.beginPath();
     canvas.moveTo(joystickState.centerX, joystickState.centerY);
     canvas.lineTo(joystickState.handleX, joystickState.handleY);
     canvas.stroke();
 
-    // 摇杆手柄
+    // 摇杆手柄（增强效果）
+    const handlePulse = Math.sin(this.animTime / 200) * 0.05 + 1;
+    const handleActualRadius = handleRadius * (1 + intensity * 0.1) * handlePulse;
     const handleGradient = canvas.createRadialGradient(
       joystickState.handleX,
       joystickState.handleY,
       4,
       joystickState.handleX,
       joystickState.handleY,
-      handleRadius
+      handleActualRadius
     );
-    handleGradient.addColorStop(0, 'rgba(255,255,255,0.95)');
-    handleGradient.addColorStop(1, 'rgba(173,216,230,0.85)');
+    handleGradient.addColorStop(0, 'rgba(255,255,255,0.98)');
+    handleGradient.addColorStop(1, `rgba(173,216,230,${0.85 + intensity * 0.15})`);
     canvas.fillStyle = handleGradient;
     canvas.beginPath();
-    canvas.arc(joystickState.handleX, joystickState.handleY, handleRadius, 0, Math.PI * 2);
+    canvas.arc(joystickState.handleX, joystickState.handleY, handleActualRadius, 0, Math.PI * 2);
     canvas.fill();
+
+    // 手柄边框
+    canvas.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    canvas.lineWidth = 2;
+    canvas.beginPath();
+    canvas.arc(joystickState.handleX, joystickState.handleY, handleActualRadius, 0, Math.PI * 2);
+    canvas.stroke();
   }
 
   private drawStartPrompt(canvas: CanvasRenderingContext2D): void {
-    canvas.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.6)';
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
+    // 添加边框
+    canvas.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+    canvas.lineWidth = 4;
+    canvas.strokeRect(20, 20, this.canvasWidth - 40, this.canvasHeight - 40);
+
+    // 添加脉冲动画
+    const pulse = Math.sin(this.animTime / 300) * 0.1 + 1;
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 72px sans-serif';
+    canvas.font = `bold ${Math.floor(76 * pulse)}px sans-serif`;
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
     canvas.fillText('点击开始游戏', this.canvasWidth / 2, this.canvasHeight / 2);

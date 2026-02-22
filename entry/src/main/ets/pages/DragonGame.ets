@@ -15,10 +15,14 @@ interface PageParams {
 struct DragonGame {
   @State isPlaying: boolean = false;
   @State viewModel: GameViewModel = new GameViewModel();
+  @State isPaused: boolean = false;
+  @State buttonScale: number = 1.0;
+  @State dragonBreathOffset: number = 0.0;
   private renderer: GameRenderer = new GameRenderer();
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
+  private animationInterval: number | null = null;
   private imageManager: ImageManager = ImageManager.getInstance();
   private joystickMaxDistance: number = 90;
   @State joystickState: JoystickRenderState = {
@@ -38,10 +42,27 @@ struct DragonGame {
     if (params?.autoStart) {
       this.startGame();
     }
+
+    // 启动龙动画
+    this.startDragonAnimation();
   }
 
   aboutToDisappear(): void {
     this.cleanup();
+    this.stopDragonAnimation();
+  }
+
+  private startDragonAnimation(): void {
+    this.animationInterval = setInterval(() => {
+      this.dragonBreathOffset = Math.sin(Date.now() / 500) * 5;
+    }, 50);
+  }
+
+  private stopDragonAnimation(): void {
+    if (this.animationInterval !== null) {
+      clearInterval(this.animationInterval);
+      this.animationInterval = null;
+    }
   }
 
   private async initImageManager(): Promise<void> {
@@ -96,6 +117,7 @@ struct DragonGame {
 
           Text('🐉')
             .fontSize(100)
+            .offset({ y: this.dragonBreathOffset })
             .margin({ bottom: 30 })
 
           Text('进化成长游戏')
@@ -107,6 +129,23 @@ struct DragonGame {
             .fontSize(20)
             .fontColor('#888888')
             .margin({ bottom: 50 })
+
+          Row({ space: 10 }) {
+            Text('生存进化')
+              .fontSize(12)
+              .fontColor('#fde68a')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(251,191,36,0.2)')
+              .borderRadius(14)
+
+            Text('双操控')
+              .fontSize(12)
+              .fontColor('#fde68a')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(251,191,36,0.2)')
+              .borderRadius(14)
+          }
+          .margin({ bottom: 20 })
 
           Column() {
             Text('游戏规则:')
@@ -147,7 +186,14 @@ struct DragonGame {
             .width(200)
             .height(60)
             .shadow({ radius: 15, color: '#4CAF50', offsetX: 0, offsetY: 5 })
-            .onClick(() => { this.startGame(); })
+            .scale({ x: this.buttonScale, y: this.buttonScale })
+            .onClick(() => {
+              this.buttonScale = 0.95;
+              setTimeout(() => {
+                this.buttonScale = 1.0;
+                this.startGame();
+              }, 150);
+            })
         }
         .width('100%')
         .padding({ bottom: 48 })
@@ -167,23 +213,130 @@ struct DragonGame {
 
   @Builder
   GameView() {
-    Column() {
-      Canvas(this.canvasContext)
+    Stack() {
+      Column() {
+        Row({ space: 12 }) {
+          Button('主页')
+            .fontSize(14)
+            .fontColor('#FFFFFF')
+            .backgroundColor('rgba(255,255,255,0.16)')
+            .borderRadius(16)
+            .height(34)
+            .onClick(() => {
+              this.backToHome();
+            })
+
+          Button('重开')
+            .fontSize(14)
+            .fontColor('#FFFFFF')
+            .backgroundColor('rgba(76,175,80,0.85)')
+            .borderRadius(16)
+            .height(34)
+            .onClick(() => {
+              this.restartGame();
+            })
+
+          Text(`分数 ${this.viewModel.score} · ${Math.floor(this.viewModel.playTime)}s`)
+            .fontSize(14)
+            .fontColor('#fef3c7')
+        }
         .width(GameConstants.CANVAS_WIDTH)
-        .height(GameConstants.CANVAS_HEIGHT)
-        .backgroundColor(GameConstants.COLOR_BACKGROUND)
-        .onReady(() => { this.onCanvasReady(); })
-        .onClick((event) => { this.onCanvasClick(event); })
-        .onTouch((event) => { this.onCanvasTouch(event); })
+        .justifyContent(FlexAlign.SpaceBetween)
+        .margin({ bottom: 8 })
+
+        Canvas(this.canvasContext)
+          .width(GameConstants.CANVAS_WIDTH)
+          .height(GameConstants.CANVAS_HEIGHT)
+          .backgroundColor(GameConstants.COLOR_BACKGROUND)
+          .onReady(() => { this.onCanvasReady(); })
+          .onClick((event) => { this.onCanvasClick(event); })
+          .onTouch((event) => { this.onCanvasTouch(event); })
+      }
+      .width('100%')
+      .height('100%')
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor('#0a1628')
+
+      // 暂停按钮
+      if (!this.isPaused) {
+        Button() {
+          Text('⏸️')
+            .fontSize(24)
+        }
+        .backgroundColor('rgba(255,255,255,0.8)')
+        .borderRadius(20)
+        .width(40)
+        .height(40)
+        .position({ x: GameConstants.CANVAS_WIDTH - 50, y: 50 })
+        .onClick(() => {
+          this.isPaused = true;
+        })
+      } else {
+        // 暂停界面
+        Column() {
+          Column() {
+            Text('⏸️ 游戏暂停')
+              .fontSize(48)
+              .fontColor('#FFFFFF')
+              .margin({ bottom: 20 })
+
+            Button('继续游戏')
+              .fontSize(24)
+              .fontColor('#FFFFFF')
+              .backgroundColor('#4CAF50')
+              .borderRadius(25)
+              .width(180)
+              .height(50)
+              .onClick(() => {
+                this.isPaused = false;
+              })
+
+            Button('返回主页')
+              .fontSize(24)
+              .fontColor('#FFFFFF')
+              .backgroundColor('#FF6B6B')
+              .borderRadius(25)
+              .width(180)
+              .height(50)
+              .margin({ top: 20 })
+              .onClick(() => {
+                this.backToHome();
+              })
+          }
+          .padding(30)
+          .backgroundColor('rgba(0,0,0,0.85)')
+          .borderRadius(20)
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.Center)
+        .backgroundColor('rgba(0,0,0,0.5)')
+      }
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor('#0a1628')
   }
 
   private startGame(): void {
     this.isPlaying = true;
+    this.viewModel = new GameViewModel();
+  }
+
+  private restartGame(): void {
+    this.viewModel = new GameViewModel();
+    this.viewModel.startGame();
+    this.joystickState = {
+      active: false,
+      centerX: 0,
+      centerY: 0,
+      handleX: 0,
+      handleY: 0
+    };
+  }
+
+  private backToHome(): void {
+    this.cleanup();
+    this.isPlaying = false;
     this.viewModel = new GameViewModel();
   }
 
