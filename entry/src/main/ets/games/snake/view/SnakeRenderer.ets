@@ -125,7 +125,7 @@ export class SnakeRenderer {
 
   private drawScore(context: CanvasRenderingContext2D, score: number): void {
     context.fillStyle = SnakeConstants.COLOR_TEXT;
-    context.font = 'bold 20px sans-serif';
+    context.font = 'bold 42px sans-serif';
     context.textAlign = 'left';
     context.textBaseline = 'top';
     context.fillText(`分数: ${score}`, 10, 10);
@@ -133,7 +133,7 @@ export class SnakeRenderer {
 
   private drawMessage(context: CanvasRenderingContext2D, message: string, color: string): void {
     context.fillStyle = color;
-    context.font = '18px sans-serif';
+    context.font = '36px sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(
@@ -150,31 +150,31 @@ export class SnakeRenderer {
 
     // 游戏结束文字
     context.fillStyle = '#ef4444';
-    context.font = 'bold 32px sans-serif';
+    context.font = 'bold 54px sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(
       '游戏结束',
       SnakeConstants.CANVAS_WIDTH / 2,
-      SnakeConstants.CANVAS_HEIGHT / 2 - 30
+      SnakeConstants.CANVAS_HEIGHT / 2 - 60
     );
 
     // 分数
     context.fillStyle = '#ffffff';
-    context.font = '20px sans-serif';
+    context.font = '42px sans-serif';
     context.fillText(
       `得分: ${score}`,
       SnakeConstants.CANVAS_WIDTH / 2,
-      SnakeConstants.CANVAS_HEIGHT / 2 + 20
+      SnakeConstants.CANVAS_HEIGHT / 2 + 10
     );
 
     // 提示
     context.fillStyle = '#888888';
-    context.font = '16px sans-serif';
+    context.font = '32px sans-serif';
     context.fillText(
       '点击重新开始',
       SnakeConstants.CANVAS_WIDTH / 2,
-      SnakeConstants.CANVAS_HEIGHT / 2 + 60
+      SnakeConstants.CANVAS_HEIGHT / 2 + 80
     );
   }
 }

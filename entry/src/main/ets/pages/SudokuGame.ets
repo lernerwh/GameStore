@@ -3,6 +3,10 @@ import { SudokuRenderer } from '../games/sudoku/view/SudokuRenderer';
 import { SudokuConstants, SudokuState, Difficulty } from '../games/sudoku/model/SudokuConstants';
 import { router } from '@kit.ArkUI';
 
+interface PageParams {
+  autoStart?: boolean;
+}
+
 @Entry
 @Component
 struct SudokuGame {
@@ -14,6 +18,14 @@ struct SudokuGame {
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
+
+  aboutToAppear(): void {
+    // 检查是否需要自动开始游戏
+    const params = router.getParams() as PageParams;
+    if (params?.autoStart) {
+      this.startGame();
+    }
+  }
 
   aboutToDisappear(): void {
     this.cleanup();

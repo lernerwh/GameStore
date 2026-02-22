@@ -37,8 +37,8 @@ export class ImageManager {
     ['creature_9', 'creature_dragon_golden.png'],
   ]);
 
-  // 图片缓存 - 使用 ImageBitmap
-  private imageCache: Map<string, ImageBitmap> = new Map();
+  // 图片缓存 - 使用 PixelMap，避免 ImageBitmap 兼容问题
+  private imageCache: Map<string, image.PixelMap> = new Map();
   private resMgr: resourceManager.ResourceManager | null = null;
 
   static getInstance(): ImageManager {
@@ -95,9 +95,7 @@ export class ImageManager {
       const imageSource = image.createImageSource(arrayBuffer);
       const pixelMap = await imageSource.createPixelMap();
 
-      // 从 PixelMap 创建 ImageBitmap
-      const imageBitmap = new ImageBitmap(pixelMap);
-      this.imageCache.set(key, imageBitmap);
+      this.imageCache.set(key, pixelMap);
     } catch (e) {
       // 图片加载失败，静默处理，使用默认绘制
       console.warn(`Failed to load image: ${imageName}`, e);
@@ -107,7 +105,7 @@ export class ImageManager {
   /**
    * 获取缓存的图片
    */
-  getCachedImage(key: string): ImageBitmap | undefined {
+  getCachedImage(key: string): image.PixelMap | undefined {
     return this.imageCache.get(key);
   }
 

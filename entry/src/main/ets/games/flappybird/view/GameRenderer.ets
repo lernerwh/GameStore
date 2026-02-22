@@ -265,7 +265,7 @@ export class GameRenderer {
     canvas.fillStyle = '#FFFFFF';
     canvas.strokeStyle = '#000000';
     canvas.lineWidth = 3;
-    canvas.font = 'bold 32px sans-serif';
+    canvas.font = 'bold 48px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
 
@@ -286,8 +286,8 @@ export class GameRenderer {
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     // 游戏结束面板
-    const panelWidth = 280;
-    const panelHeight = 200;
+    const panelWidth = 300;
+    const panelHeight = 240;
     const panelX = (this.canvasWidth - panelWidth) / 2;
     const panelY = (this.canvasHeight - panelHeight) / 2;
 
@@ -299,20 +299,20 @@ export class GameRenderer {
 
     // 游戏结束文字
     canvas.fillStyle = '#8B0000';
-    canvas.font = 'bold 36px sans-serif';
+    canvas.font = 'bold 48px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
-    canvas.fillText('游戏结束', this.canvasWidth / 2, panelY + 50);
+    canvas.fillText('游戏结束', this.canvasWidth / 2, panelY + 60);
 
     // 分数
     canvas.fillStyle = '#000000';
-    canvas.font = 'bold 24px sans-serif';
-    canvas.fillText(`分数: ${score}`, this.canvasWidth / 2, panelY + 100);
+    canvas.font = 'bold 36px sans-serif';
+    canvas.fillText(`分数: ${score}`, this.canvasWidth / 2, panelY + 120);
 
     // 重新开始提示
     canvas.fillStyle = '#006400';
-    canvas.font = '20px sans-serif';
-    canvas.fillText('点击重新开始', this.canvasWidth / 2, panelY + 160);
+    canvas.font = '32px sans-serif';
+    canvas.fillText('点击重新开始', this.canvasWidth / 2, panelY + 190);
   }
 
   /**

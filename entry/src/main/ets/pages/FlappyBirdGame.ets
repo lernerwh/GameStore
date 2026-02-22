@@ -6,6 +6,10 @@ import { GameConstants } from '../games/flappybird/model/GameConstants';
 import { common } from '@kit.AbilityKit';
 import { router } from '@kit.ArkUI';
 
+interface PageParams {
+  autoStart?: boolean;
+}
+
 /**
  * Flappy Bird 游戏页面
  */
@@ -28,6 +32,12 @@ struct FlappyBirdGame {
 
   aboutToAppear(): void {
     this.initScoreRepository();
+
+    // 检查是否需要自动开始游戏
+    const params = router.getParams() as PageParams;
+    if (params?.autoStart) {
+      this.startGame();
+    }
   }
 
   aboutToDisappear(): void {

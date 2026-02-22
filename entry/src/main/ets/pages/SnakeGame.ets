@@ -4,6 +4,10 @@ import { SnakeState } from '../games/snake/model/SnakeState';
 import { SnakeConstants } from '../games/snake/model/SnakeConstants';
 import { router } from '@kit.ArkUI';
 
+interface PageParams {
+  autoStart?: boolean;
+}
+
 @Entry
 @Component
 struct SnakeGame {
@@ -15,6 +19,14 @@ struct SnakeGame {
   private gameInterval: number | null = null;
   private touchStartX: number = 0;
   private touchStartY: number = 0;
+
+  aboutToAppear(): void {
+    // 检查是否需要自动开始游戏
+    const params = router.getParams() as PageParams;
+    if (params?.autoStart) {
+      this.startGame();
+    }
+  }
 
   aboutToDisappear(): void {
     this.cleanup();

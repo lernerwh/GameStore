@@ -1,13 +1,61 @@
 import { GameCatalog, GameInfo } from '../model/GameInfo';
 import { router } from '@kit.ArkUI';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+
+const DOMAIN = 0x0000;
+const TAG = 'Index';
 
 @Entry
 @Component
 struct Index {
   @State games: GameInfo[] = [];
+  @StorageLink('launchGameId') @Watch('onLaunchGameIdChanged') launchGameId: string = '';
+  @StorageLink('launchAutoStart') launchAutoStart: boolean = false;
 
   aboutToAppear(): void {
     this.games = GameCatalog.getGames();
+    hilog.info(DOMAIN, TAG, 'aboutToAppear: launchGameId=%{public}s, launchAutoStart=%{public}s',
+      this.launchGameId, String(this.launchAutoStart));
+
+    // 初始检查
+    this.checkAndRedirect();
+  }
+
+  /**
+   * 监听 launchGameId 变化
+   */
+  onLaunchGameIdChanged(): void {
+    hilog.info(DOMAIN, TAG, 'onLaunchGameIdChanged: launchGameId=%{public}s', this.launchGameId);
+    this.checkAndRedirect();
+  }
+
+  /**
+   * 检查并跳转到对应游戏
+   */
+  private checkAndRedirect(): void {
+    if (!this.launchGameId) {
+      hilog.info(DOMAIN, TAG, 'No launchGameId, staying on catalog page');
+      return;
+    }
+
+    hilog.info(DOMAIN, TAG, 'Detected launchGameId: %{public}s', this.launchGameId);
+    const game = GameCatalog.getGameById(this.launchGameId);
+    if (game) {
+      hilog.info(DOMAIN, TAG, 'Found game: %{public}s, will redirect to %{public}s', game.name, game.page);
+      // 保存当前的 autostart 值
+      const autoStart = this.launchAutoStart;
+      // 立即清除启动参数，避免重复跳转
+      AppStorage.setOrCreate('launchGameId', '');
+      AppStorage.setOrCreate('launchAutoStart', false);
+
+      // 延迟跳转
+      setTimeout(() => {
+        hilog.info(DOMAIN, TAG, 'Executing redirect to game: %{public}s with autoStart=%{public}s', game.name, String(autoStart));
+        this.startGame(game, autoStart);
+      }, 50);
+    } else {
+      hilog.warn(DOMAIN, TAG, 'Game not found for id: %{public}s', this.launchGameId);
+    }
   }
 
   build() {
@@ -182,9 +230,12 @@ struct Index {
     .padding({ top: 15, bottom: 20 })
   }
 
-  private startGame(game: GameInfo): void {
+  private startGame(game: GameInfo, autoStart: boolean = false): void {
     router.pushUrl({
-      url: game.page
+      url: game.page,
+      params: {
+        autoStart: autoStart
+      }
     }).catch((err: Error) => {
       console.error('Failed to start game:', err.message);
     });

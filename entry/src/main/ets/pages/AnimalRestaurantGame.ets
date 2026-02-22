@@ -8,6 +8,10 @@ import { MathUtils, Point } from '../games/animalrestaurant/model/MathUtils';
 import { GameConstants } from '../games/animalrestaurant/model/GameConstants';
 import { router } from '@kit.ArkUI';
 
+interface PageParams {
+  autoStart?: boolean;
+}
+
 @Entry
 @Component
 struct AnimalRestaurantGame {
@@ -18,6 +22,14 @@ struct AnimalRestaurantGame {
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
+
+  aboutToAppear(): void {
+    // 检查是否需要自动开始游戏
+    const params = router.getParams() as PageParams;
+    if (params?.autoStart) {
+      this.startGame();
+    }
+  }
 
   aboutToDisappear(): void {
     this.cleanup();

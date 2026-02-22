@@ -94,13 +94,13 @@ export class GameRenderer {
 
     // 厨房标签
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 20px sans-serif';
+    canvas.font = 'bold 36px sans-serif';
     canvas.textAlign = 'center';
     canvas.fillText('厨房', GameConstants.KITCHEN_X + GameConstants.KITCHEN_WIDTH / 2, GameConstants.KITCHEN_Y + 28);
 
     // 厨师图标
-    canvas.font = '36px sans-serif';
-    canvas.fillText('👨‍🍳', GameConstants.KITCHEN_X + GameConstants.KITCHEN_WIDTH / 2, GameConstants.KITCHEN_Y + 62);
+    canvas.font = '48px sans-serif';
+    canvas.fillText('👨‍🍳', GameConstants.KITCHEN_X + GameConstants.KITCHEN_WIDTH / 2, GameConstants.KITCHEN_Y + 72);
   }
 
   /**
@@ -118,9 +118,9 @@ export class GameRenderer {
 
     // 等待区标签
     canvas.fillStyle = '#666666';
-    canvas.font = '18px sans-serif';
+    canvas.font = '32px sans-serif';
     canvas.textAlign = 'center';
-    canvas.fillText('等待区', GameConstants.KITCHEN_X + GameConstants.KITCHEN_WIDTH + 100, GameConstants.KITCHEN_Y + 20);
+    canvas.fillText('等待区', GameConstants.KITCHEN_X + GameConstants.KITCHEN_WIDTH + 100, GameConstants.KITCHEN_Y + 25);
   }
 
   /**
@@ -144,20 +144,20 @@ export class GameRenderer {
       if (table.state === TableState.NEEDS_CLEAN) {
         // 需要清理 - 显示脏盘子
         canvas.fillStyle = '#FF6B6B';
-        canvas.font = '16px sans-serif';
+        canvas.font = '28px sans-serif';
         canvas.textAlign = 'center';
         canvas.fillText('🍽️', table.x + table.width / 2, table.y + table.height / 2 + 5);
-        canvas.font = '10px sans-serif';
-        canvas.fillText('点击清理', table.x + table.width / 2, table.y + table.height + 12);
+        canvas.font = '18px sans-serif';
+        canvas.fillText('点击清理', table.x + table.width / 2, table.y + table.height + 15);
       } else if (table.state === TableState.OCCUPIED && table.customer) {
         // 有顾客 - 显示点餐气泡
         if (table.customer.state === CustomerState.ORDERING) {
           canvas.fillStyle = '#4CAF50';
-          canvas.font = '12px sans-serif';
+          canvas.font = '24px sans-serif';
           canvas.fillText('💭', table.x + table.width / 2, table.y - 5);
         } else if (table.customer.state === CustomerState.WAITING_FOOD) {
           canvas.fillStyle = '#FF9800';
-          canvas.font = '12px sans-serif';
+          canvas.font = '24px sans-serif';
           canvas.fillText('⏳', table.x + table.width / 2, table.y - 5);
         }
       }
@@ -199,10 +199,10 @@ export class GameRenderer {
 
       // 状态指示
       if (customer.state === CustomerState.EATING) {
-        canvas.font = '12px sans-serif';
+        canvas.font = '24px sans-serif';
         canvas.fillText('😋', customer.x, customer.y - customer.size / 2 - 10);
       } else if (customer.state === CustomerState.ORDERING) {
-        canvas.font = '12px sans-serif';
+        canvas.font = '24px sans-serif';
         canvas.fillText('📋', customer.x, customer.y - customer.size / 2 - 10);
       }
     }
@@ -275,8 +275,8 @@ export class GameRenderer {
       // 准备好提示
       if (dish.state === DishState.READY) {
         canvas.fillStyle = '#4CAF50';
-        canvas.font = '10px sans-serif';
-        canvas.fillText('✓ 点击上菜', dish.x, dish.y + dish.size / 2 + 12);
+        canvas.font = '18px sans-serif';
+        canvas.fillText('✓ 点击上菜', dish.x, dish.y + dish.size / 2 + 15);
       }
     }
   }
@@ -287,18 +287,18 @@ export class GameRenderer {
   private drawHUD(canvas: CanvasRenderingContext2D, restaurant: Restaurant): void {
     // 金币
     canvas.fillStyle = GameConstants.COLOR_GOLD;
-    canvas.font = 'bold 24px sans-serif';
+    canvas.font = 'bold 36px sans-serif';
     canvas.textAlign = 'left';
     canvas.textBaseline = 'top';
-    canvas.fillText(`💰 ${restaurant.coins}`, 170, GameConstants.KITCHEN_Y + 18);
+    canvas.fillText(`💰 ${restaurant.coins}`, 170, GameConstants.KITCHEN_Y + 15);
 
     // 等级
     canvas.fillStyle = '#4CAF50';
-    canvas.fillText(`⭐ Lv.${restaurant.level}`, 170, GameConstants.KITCHEN_Y + 48);
+    canvas.fillText(`⭐ Lv.${restaurant.level}`, 170, GameConstants.KITCHEN_Y + 55);
 
     // 满意度
     canvas.fillStyle = '#FF6B6B';
-    canvas.fillText(`❤️ ${restaurant.getSatisfactionRate()}%`, 170, GameConstants.KITCHEN_Y + 78);
+    canvas.fillText(`❤️ ${restaurant.getSatisfactionRate()}%`, 170, GameConstants.KITCHEN_Y + 95);
   }
 
   /**
@@ -309,21 +309,21 @@ export class GameRenderer {
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 32px sans-serif';
+    canvas.font = 'bold 48px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
-    canvas.fillText('🐾 动物餐厅 🐾', this.canvasWidth / 2, this.canvasHeight / 2 - 60);
+    canvas.fillText('🐾 动物餐厅 🐾', this.canvasWidth / 2, this.canvasHeight / 2 - 80);
 
-    canvas.font = '18px sans-serif';
-    canvas.fillText('欢迎来到温馨的动物餐厅！', this.canvasWidth / 2, this.canvasHeight / 2 - 20);
+    canvas.font = '32px sans-serif';
+    canvas.fillText('欢迎来到温馨的动物餐厅！', this.canvasWidth / 2, this.canvasHeight / 2 - 30);
 
-    canvas.font = '16px sans-serif';
+    canvas.font = '28px sans-serif';
     canvas.fillText('招待可爱的动物顾客', this.canvasWidth / 2, this.canvasHeight / 2 + 20);
-    canvas.fillText('烹饪美味的菜肴', this.canvasWidth / 2, this.canvasHeight / 2 + 45);
+    canvas.fillText('烹饪美味的菜肴', this.canvasWidth / 2, this.canvasHeight / 2 + 60);
 
-    canvas.font = 'bold 20px sans-serif';
+    canvas.font = 'bold 36px sans-serif';
     canvas.fillStyle = '#4CAF50';
-    canvas.fillText('点击开始营业', this.canvasWidth / 2, this.canvasHeight / 2 + 90);
+    canvas.fillText('点击开始营业', this.canvasWidth / 2, this.canvasHeight / 2 + 120);
   }
 
   /**
@@ -334,12 +334,12 @@ export class GameRenderer {
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 32px sans-serif';
+    canvas.font = 'bold 48px sans-serif';
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
     canvas.fillText('⏸️ 游戏暂停', this.canvasWidth / 2, this.canvasHeight / 2 - 20);
 
-    canvas.font = '18px sans-serif';
-    canvas.fillText('点击继续', this.canvasWidth / 2, this.canvasHeight / 2 + 30);
+    canvas.font = '32px sans-serif';
+    canvas.fillText('点击继续', this.canvasWidth / 2, this.canvasHeight / 2 + 40);
   }
 }

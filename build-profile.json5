@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/jiwei/.ohos/config/default_GameStore_7bgwtpf9KNhorN9Pq0hV7_VJuBqSha95ik0H-Q31kS8=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B588B3EA6F51EB5E51FDD32A0133B661AF1C0EEABE2EE3E919A02426A89DD298C422158B10F896E",
+          "profile": "/Users/jiwei/.ohos/config/default_GameStore_7bgwtpf9KNhorN9Pq0hV7_VJuBqSha95ik0H-Q31kS8=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/jiwei/.ohos/config/default_GameStore_7bgwtpf9KNhorN9Pq0hV7_VJuBqSha95ik0H-Q31kS8=.p12",
+          "storePassword": "0000001B2195B5CBC1E8D0DA86A61D4022A0A514A907A8DD7086467F427E8C335A5EAF44F34775B9BCBE59"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
