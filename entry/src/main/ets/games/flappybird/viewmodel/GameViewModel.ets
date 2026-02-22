@@ -36,8 +36,6 @@ export class GameViewModel {
   /** 上一帧时间戳 */
   private lastFrameTime: number;
 
-  /** 帧率 (FPS) */
-  private readonly TARGET_FPS: number = 60;
   private readonly FRAME_TIME: number = 1000 / 60;
 
   constructor() {

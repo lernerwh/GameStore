@@ -2,7 +2,6 @@ import { GameEngine } from './GameEngine';
 import { Player } from '../model/Player';
 import { Platform } from '../model/Platform';
 import { GameState } from '../model/GameState';
-import { GameConstants } from '../model/GameConstants';
 
 @Observed
 export class GameViewModel {

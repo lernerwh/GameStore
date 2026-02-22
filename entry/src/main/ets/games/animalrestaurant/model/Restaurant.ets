@@ -1,5 +1,3 @@
-import { GameConstants, TableState } from './GameConstants';
-
 /**
  * 餐厅数据类 - 存储餐厅的整体状态
  */
