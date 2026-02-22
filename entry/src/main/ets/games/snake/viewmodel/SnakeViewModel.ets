@@ -1,5 +1,4 @@
 import { SnakeEngine } from './SnakeEngine';
-import { SnakeState } from '../model/SnakeState';
 import { SnakeConstants } from '../model/SnakeConstants';
 
 /**
