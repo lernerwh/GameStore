@@ -13,10 +13,13 @@ interface PageParams {
 struct SnakeGame {
   @State isPlaying: boolean = false;
   @State viewModel: SnakeViewModel = new SnakeViewModel();
+  @State buttonScale: number = 1.0;
+  @State snakeWobbleOffset: number = 0.0;
   private renderer: SnakeRenderer = new SnakeRenderer();
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private gameInterval: number | null = null;
+  private animationInterval: number | null = null;
   private touchStartX: number = 0;
   private touchStartY: number = 0;
 
@@ -26,10 +29,27 @@ struct SnakeGame {
     if (params?.autoStart) {
       this.startGame();
     }
+
+    // 启动蛇摇摆动画
+    this.startSnakeAnimation();
   }
 
   aboutToDisappear(): void {
     this.cleanup();
+    this.stopSnakeAnimation();
+  }
+
+  private startSnakeAnimation(): void {
+    this.animationInterval = setInterval(() => {
+      this.snakeWobbleOffset = Math.sin(Date.now() / 300) * 5;
+    }, 50);
+  }
+
+  private stopSnakeAnimation(): void {
+    if (this.animationInterval !== null) {
+      clearInterval(this.animationInterval);
+      this.animationInterval = null;
+    }
   }
 
   build() {
@@ -74,6 +94,7 @@ struct SnakeGame {
 
           Text('🐍')
             .fontSize(80)
+            .rotate({ angle: this.snakeWobbleOffset })
             .margin({ bottom: 30 })
 
           Text('经典街机游戏')
@@ -85,6 +106,23 @@ struct SnakeGame {
             .fontSize(16)
             .fontColor('#888888')
             .margin({ bottom: 50 })
+
+          Row({ space: 10 }) {
+            Text('新手友好')
+              .fontSize(12)
+              .fontColor('#bbf7d0')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(34,197,94,0.2)')
+              .borderRadius(14)
+
+            Text('滑动操控')
+              .fontSize(12)
+              .fontColor('#dcfce7')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(34,197,94,0.16)')
+              .borderRadius(14)
+          }
+          .margin({ bottom: 20 })
 
           Column() {
             Text('游戏规则:')
@@ -125,7 +163,14 @@ struct SnakeGame {
             .width(180)
             .height(50)
             .shadow({ radius: 15, color: '#22c55e', offsetX: 0, offsetY: 5 })
-            .onClick(() => { this.startGame(); })
+            .scale({ x: this.buttonScale, y: this.buttonScale })
+            .onClick(() => {
+              this.buttonScale = 0.95;
+              setTimeout(() => {
+                this.buttonScale = 1.0;
+                this.startGame();
+              }, 150);
+            })
         }
         .width('100%')
         .padding({ bottom: 48 })
@@ -146,6 +191,35 @@ struct SnakeGame {
   @Builder
   GameView() {
     Column() {
+      Row({ space: 12 }) {
+        Button('主页')
+          .fontSize(14)
+          .fontColor('#FFFFFF')
+          .backgroundColor('rgba(255,255,255,0.16)')
+          .borderRadius(16)
+          .height(34)
+          .onClick(() => {
+            this.backToHome();
+          })
+
+        Button('重开')
+          .fontSize(14)
+          .fontColor('#FFFFFF')
+          .backgroundColor('rgba(74,222,128,0.35)')
+          .borderRadius(16)
+          .height(34)
+          .onClick(() => {
+            this.restartGame();
+          })
+
+        Text(`分数 ${this.viewModel.score} · ${this.getStateLabel()}`)
+          .fontSize(14)
+          .fontColor('#d1fae5')
+      }
+      .width(SnakeConstants.CANVAS_WIDTH)
+      .justifyContent(FlexAlign.SpaceBetween)
+      .margin({ bottom: 8 })
+
       Canvas(this.canvasContext)
         .width(SnakeConstants.CANVAS_WIDTH)
         .height(SnakeConstants.CANVAS_HEIGHT)
@@ -163,6 +237,27 @@ struct SnakeGame {
   private startGame(): void {
     this.isPlaying = true;
     this.viewModel = new SnakeViewModel();
+  }
+
+  private restartGame(): void {
+    this.viewModel = new SnakeViewModel();
+    this.viewModel.startGame();
+  }
+
+  private backToHome(): void {
+    this.cleanup();
+    this.isPlaying = false;
+    this.viewModel = new SnakeViewModel();
+  }
+
+  private getStateLabel(): string {
+    if (this.viewModel.gameState === SnakeState.IDLE) {
+      return '待开始';
+    }
+    if (this.viewModel.gameState === SnakeState.PLAYING) {
+      return '进行中';
+    }
+    return '已结束';
   }
 
   private onCanvasReady(): void {
