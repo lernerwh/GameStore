@@ -39,7 +39,8 @@ struct GameCatalogCard {
         action: 'router',
         abilityName: 'EntryAbility',
         params: {
-          targetPage: 'pages/Index'
+          game: '',
+          autostart: false
         }
       });
     })
