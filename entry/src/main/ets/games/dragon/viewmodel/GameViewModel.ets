@@ -48,6 +48,29 @@ export class GameViewModel {
     this.engine.setPlayerTarget(worldX, worldY);
   }
 
+  /**
+   * 根据虚拟手柄拖拽向量设置角色移动方向。
+   * deltaX/deltaY 为屏幕坐标系下，相对于摇杆中心的偏移。
+   * strength 取值建议为 [0, 1]，用于控制目标点距离。
+   */
+  setPlayerDirectionInput(deltaX: number, deltaY: number, strength: number): void {
+    const len = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (len < 1) {
+      return;
+    }
+
+    const normalizedX = deltaX / len;
+    const normalizedY = deltaY / len;
+    const clampedStrength = Math.max(0, Math.min(1, strength));
+    const targetOffset = 120 + clampedStrength * 420;
+    const player = this.engine.getPlayer();
+
+    this.engine.setPlayerTarget(
+      player.x + normalizedX * targetOffset,
+      player.y + normalizedY * targetOffset
+    );
+  }
+
   private startGameLoop(): void {
     this.lastFrameTime = Date.now();
     this.intervalId = setInterval(() => {

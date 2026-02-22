@@ -1,5 +1,5 @@
 import { GameViewModel } from '../games/dragon/viewmodel/GameViewModel';
-import { GameRenderer } from '../games/dragon/view/GameRenderer';
+import { GameRenderer, JoystickRenderState } from '../games/dragon/view/GameRenderer';
 import { GameState } from '../model/GameState';
 import { GameConstants } from '../common/constants/GameConstants';
 import { ImageManager } from '../common/utils/ImageManager';
@@ -20,6 +20,14 @@ struct DragonGame {
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
   private imageManager: ImageManager = ImageManager.getInstance();
+  private joystickMaxDistance: number = 90;
+  @State joystickState: JoystickRenderState = {
+    active: false,
+    centerX: 0,
+    centerY: 0,
+    handleX: 0,
+    handleY: 0
+  };
 
   aboutToAppear(): void {
     // 初始化图片管理器
@@ -106,7 +114,7 @@ struct DragonGame {
               .fontColor('#FFFFFF')
               .margin({ bottom: 15 })
 
-            Text('• 点击屏幕控制移动方向')
+            Text('• 手指任意位置按下并拖拽摇杆控制方向')
               .fontSize(18)
               .fontColor('#CCCCCC')
               .margin({ bottom: 10 })
@@ -193,8 +201,9 @@ struct DragonGame {
     } else if (state === GameState.GAME_OVER) {
       this.cleanup();
       this.isPlaying = false;
+    } else if (state === GameState.PLAYING) {
+      this.viewModel.setPlayerTarget(event.x, event.y);
     } else {
-      // 游戏中，设置移动目标
       this.viewModel.setPlayerTarget(event.x, event.y);
     }
   }
@@ -204,9 +213,51 @@ struct DragonGame {
       return;
     }
 
-    if (event.type === TouchType.Move || event.type === TouchType.Down) {
-      this.viewModel.setPlayerTarget(event.touches[0].x, event.touches[0].y);
+    if (event.type === TouchType.Down && event.touches.length > 0) {
+      const touch = event.touches[0];
+      this.joystickState = {
+        active: true,
+        centerX: touch.x,
+        centerY: touch.y,
+        handleX: touch.x,
+        handleY: touch.y
+      };
+      return;
     }
+
+    if (event.type === TouchType.Move && event.touches.length > 0 && this.joystickState.active) {
+      const touch = event.touches[0];
+      const deltaX = touch.x - this.joystickState.centerX;
+      const deltaY = touch.y - this.joystickState.centerY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const clampedDistance = Math.min(distance, this.joystickMaxDistance);
+      const ratio = distance > 0 ? clampedDistance / distance : 0;
+      const handleX = this.joystickState.centerX + deltaX * ratio;
+      const handleY = this.joystickState.centerY + deltaY * ratio;
+
+      this.joystickState = {
+        active: true,
+        centerX: this.joystickState.centerX,
+        centerY: this.joystickState.centerY,
+        handleX,
+        handleY
+      };
+
+      this.viewModel.setPlayerDirectionInput(
+        handleX - this.joystickState.centerX,
+        handleY - this.joystickState.centerY,
+        clampedDistance / this.joystickMaxDistance
+      );
+      return;
+    }
+
+    this.joystickState = {
+      active: false,
+      centerX: this.joystickState.centerX,
+      centerY: this.joystickState.centerY,
+      handleX: this.joystickState.centerX,
+      handleY: this.joystickState.centerY
+    };
   }
 
   private render(): void {
@@ -218,7 +269,8 @@ struct DragonGame {
       this.viewModel.gameState,
       this.viewModel.hasWon,
       this.viewModel.playTime,
-      this.viewModel.getCamera()
+      this.viewModel.getCamera(),
+      this.joystickState
     );
   }
 

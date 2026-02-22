@@ -5,6 +5,14 @@ import { GameConstants } from '../../../common/constants/GameConstants';
 import { Camera, Point } from '../viewmodel/GameEngine';
 import { ImageManager } from '../../../common/utils/ImageManager';
 
+export interface JoystickRenderState {
+  active: boolean;
+  centerX: number;
+  centerY: number;
+  handleX: number;
+  handleY: number;
+}
+
 /**
  * 游戏渲染器 - 召唤神龙
  */
@@ -20,7 +28,8 @@ export class GameRenderer {
     gameState: GameState,
     hasWon: boolean,
     playTime: number,
-    camera: Camera
+    camera: Camera,
+    joystickState?: JoystickRenderState
   ): void {
     this.clearCanvas(canvas);
     this.drawBackground(canvas);
@@ -31,6 +40,7 @@ export class GameRenderer {
       this.drawBoundaryWarning(canvas, player, camera);
       this.drawMinimap(canvas, player, creatures, camera);
       this.drawHUD(canvas, player, score, playTime);
+      this.drawJoystick(canvas, joystickState);
     }
 
     if (gameState === GameState.IDLE) {
@@ -238,7 +248,7 @@ export class GameRenderer {
   private drawHUD(canvas: CanvasRenderingContext2D, player: Player, score: number, playTime: number): void {
     // 左上角信息
     canvas.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    canvas.fillRect(5, 5, 240, 130);
+    canvas.fillRect(5, 5, 260, 170);
 
     canvas.fillStyle = '#FFFFFF';
     canvas.font = 'bold 42px sans-serif';
@@ -255,6 +265,94 @@ export class GameRenderer {
     // 当前进化等级
     canvas.fillStyle = player.getColor();
     canvas.fillText(`${player.getName()}`, 15, 100);
+
+    // 成长进度条
+    this.drawGrowthProgress(canvas, player, score);
+  }
+
+  private drawGrowthProgress(canvas: CanvasRenderingContext2D, player: Player, score: number): void {
+    const level = player.evolutionLevel;
+    const isMaxLevel = level >= GameConstants.EVOLUTION_SCORES.length - 1;
+    const currentNeed = GameConstants.EVOLUTION_SCORES[level];
+    const nextNeed = isMaxLevel ? currentNeed : GameConstants.EVOLUTION_SCORES[level + 1];
+    const gained = Math.max(0, score - currentNeed);
+    const total = Math.max(1, nextNeed - currentNeed);
+    const progress = isMaxLevel ? 1 : Math.max(0, Math.min(1, gained / total));
+
+    const barX = 15;
+    const barY = 133;
+    const barW = 170;
+    const barH = 12;
+
+    canvas.fillStyle = '#88AFC7';
+    canvas.font = '22px sans-serif';
+    canvas.fillText('成长进度', barX, 122);
+
+    canvas.fillStyle = 'rgba(255,255,255,0.2)';
+    canvas.fillRect(barX, barY, barW, barH);
+
+    const gradient = canvas.createLinearGradient(barX, barY, barX + barW, barY);
+    gradient.addColorStop(0, '#4CAF50');
+    gradient.addColorStop(1, '#FFD700');
+    canvas.fillStyle = gradient;
+    canvas.fillRect(barX, barY, barW * progress, barH);
+
+    canvas.strokeStyle = 'rgba(255,255,255,0.35)';
+    canvas.lineWidth = 1;
+    canvas.strokeRect(barX, barY, barW, barH);
+
+    canvas.fillStyle = '#FFFFFF';
+    canvas.font = '20px sans-serif';
+    if (isMaxLevel) {
+      canvas.fillText('已达神龙', barX + barW + 8, barY - 1);
+    } else {
+      canvas.fillText(`${Math.floor(progress * 100)}%`, barX + barW + 10, barY - 1);
+    }
+  }
+
+  private drawJoystick(canvas: CanvasRenderingContext2D, joystickState?: JoystickRenderState): void {
+    if (!joystickState || !joystickState.active) {
+      return;
+    }
+
+    const baseRadius = 42;
+    const handleRadius = 24;
+
+    // 摇杆底座
+    canvas.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    canvas.beginPath();
+    canvas.arc(joystickState.centerX, joystickState.centerY, baseRadius, 0, Math.PI * 2);
+    canvas.fill();
+
+    canvas.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    canvas.lineWidth = 2;
+    canvas.beginPath();
+    canvas.arc(joystickState.centerX, joystickState.centerY, baseRadius, 0, Math.PI * 2);
+    canvas.stroke();
+
+    // 摇杆连线
+    canvas.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    canvas.lineWidth = 3;
+    canvas.beginPath();
+    canvas.moveTo(joystickState.centerX, joystickState.centerY);
+    canvas.lineTo(joystickState.handleX, joystickState.handleY);
+    canvas.stroke();
+
+    // 摇杆手柄
+    const handleGradient = canvas.createRadialGradient(
+      joystickState.handleX,
+      joystickState.handleY,
+      4,
+      joystickState.handleX,
+      joystickState.handleY,
+      handleRadius
+    );
+    handleGradient.addColorStop(0, 'rgba(255,255,255,0.95)');
+    handleGradient.addColorStop(1, 'rgba(173,216,230,0.85)');
+    canvas.fillStyle = handleGradient;
+    canvas.beginPath();
+    canvas.arc(joystickState.handleX, joystickState.handleY, handleRadius, 0, Math.PI * 2);
+    canvas.fill();
   }
 
   private drawStartPrompt(canvas: CanvasRenderingContext2D): void {
