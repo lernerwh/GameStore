@@ -1,7 +1,6 @@
 import { Snake } from '../model/Snake';
 import { Food } from '../model/Food';
 import { SnakeState } from '../model/SnakeState';
-import { SnakeConstants } from '../model/SnakeConstants';
 
 /**
  * 贪吃蛇游戏引擎
@@ -12,7 +11,6 @@ export class SnakeEngine {
   gameState: SnakeState = SnakeState.IDLE;
   score: number = 0;
   highScore: number = 0;
-  private gameInterval: number | null = null;
 
   constructor() {
     this.food.spawn(this.snake);
@@ -74,9 +72,6 @@ export class SnakeEngine {
   }
 
   destroy(): void {
-    if (this.gameInterval !== null) {
-      clearInterval(this.gameInterval);
-      this.gameInterval = null;
-    }
+    // no-op
   }
 }
