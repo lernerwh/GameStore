@@ -176,8 +176,16 @@ export class GameEngine {
 
     // 定期生成新生物
     this.spawnTimer += deltaTime * 1000;
-    if (this.spawnTimer >= GameConstants.CREATURE_SPAWN_INTERVAL && this.creatures.length < GameConstants.CREATURE_COUNT * 1.5) {
-      this.spawnCreature();
+    if (this.spawnTimer >= GameConstants.CREATURE_SPAWN_INTERVAL && this.creatures.length < GameConstants.CREATURE_MAX_COUNT) {
+      const belowMin = Math.max(0, GameConstants.CREATURE_MIN_COUNT - this.creatures.length);
+      const baseSpawn = 1 + Math.floor(Math.random() * 3); // 1~3 随机刷新
+      const spawnCount = Math.min(
+        GameConstants.CREATURE_MAX_COUNT - this.creatures.length,
+        baseSpawn + Math.min(3, belowMin)
+      );
+      for (let i = 0; i < spawnCount; i++) {
+        this.spawnCreature();
+      }
       this.spawnTimer = 0;
     }
     this.pelletSpawnTimer += deltaTime * 1000;
@@ -187,10 +195,9 @@ export class GameEngine {
       this.pelletSpawnTimer = 0;
     }
 
-    // 检查胜利条件
+    // 到达神龙后继续探索，不再直接结束游戏
     if (this.score >= GameConstants.WIN_SCORE) {
       this.hasWon = true;
-      this.gameState = GameState.GAME_OVER;
     }
   }
 

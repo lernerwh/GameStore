@@ -18,13 +18,14 @@ export class GameConstants {
   static readonly SCORE_PER_HIT: number = 1;
   static readonly PLAYER_INITIAL_SCORE: number = 18;
   static readonly WIN_SCORE: number = 2000;
+  static readonly POST_DRAGON_RADIUS_PER_SCORE: number = 0.01;
   static readonly MIN_EAT_SIZE_RATIO: number = 1.05;
   static readonly PLAYER_EAT_SCORE_RATIO: number = 0.65;
   static readonly NPC_EAT_SCORE_RATIO: number = 0.55;
   static readonly PELLET_SCORE: number = 6;
   static readonly PELLET_RADIUS: number = 4;
-  static readonly PELLET_COUNT: number = 140;
-  static readonly PELLET_SPAWN_INTERVAL: number = 1200;
+  static readonly PELLET_COUNT: number = 220;
+  static readonly PELLET_SPAWN_INTERVAL: number = 700;
 
   // 颜色定义
   static readonly COLOR_BACKGROUND: string = '#0a1628';
@@ -90,7 +91,9 @@ export class GameConstants {
 
   // 生物数量配置
   static readonly CREATURE_COUNT: number = 80;
-  static readonly CREATURE_SPAWN_INTERVAL: number = 3000;
+  static readonly CREATURE_MIN_COUNT: number = 70;
+  static readonly CREATURE_MAX_COUNT: number = 150;
+  static readonly CREATURE_SPAWN_INTERVAL: number = 1200;
 
   // 摄像机配置
   static readonly CAMERA_FOLLOW_SPEED: number = 0.1;
@@ -108,9 +111,13 @@ export class GameConstants {
   static getRadiusByScore(score: number): number {
     const minRadius = GameConstants.EVOLUTION_SIZES[0] / 2;
     const maxRadius = GameConstants.EVOLUTION_SIZES[GameConstants.EVOLUTION_SIZES.length - 1] / 2;
-    const clampedScore = Math.max(0, Math.min(score, GameConstants.WIN_SCORE));
-    const progress = clampedScore / GameConstants.WIN_SCORE;
-    return minRadius + (maxRadius - minRadius) * progress;
+    const safeScore = Math.max(0, score);
+    if (safeScore <= GameConstants.WIN_SCORE) {
+      const progress = safeScore / GameConstants.WIN_SCORE;
+      return minRadius + (maxRadius - minRadius) * progress;
+    }
+
+    return maxRadius + (safeScore - GameConstants.WIN_SCORE) * GameConstants.POST_DRAGON_RADIUS_PER_SCORE;
   }
 
   static getSpawnScoreByLevel(level: number): number {
