@@ -20,6 +20,10 @@ export class GameConstants {
   static readonly MIN_EAT_SIZE_RATIO: number = 1.05;
   static readonly PLAYER_EAT_SCORE_RATIO: number = 0.65;
   static readonly NPC_EAT_SCORE_RATIO: number = 0.55;
+  static readonly PELLET_SCORE: number = 6;
+  static readonly PELLET_RADIUS: number = 4;
+  static readonly PELLET_COUNT: number = 140;
+  static readonly PELLET_SPAWN_INTERVAL: number = 1200;
 
   // 颜色定义
   static readonly COLOR_BACKGROUND: string = '#0a1628';

@@ -1,5 +1,6 @@
 import { Player } from '../../../model/Player';
 import { Creature } from '../../../model/Creature';
+import { Pellet } from '../../../model/Pellet';
 import { GameState } from '../../../model/GameState';
 import { GameConstants } from '../../../common/constants/GameConstants';
 
@@ -52,12 +53,14 @@ export class Camera {
 export class GameEngine {
   private player: Player;
   private creatures: Creature[] = [];
+  private pellets: Pellet[] = [];
   private gameState: GameState;
   private score: number = 0;
   private playTime: number = 0;
   private hasWon: boolean = false;
   private camera: Camera = new Camera();
   private spawnTimer: number = 0;
+  private pelletSpawnTimer: number = 0;
 
   constructor() {
     this.player = new Player();
@@ -71,6 +74,10 @@ export class GameEngine {
 
   getCreatures(): Creature[] {
     return this.creatures;
+  }
+
+  getPellets(): Pellet[] {
+    return this.pellets;
   }
 
   getGameState(): GameState {
@@ -101,12 +108,20 @@ export class GameEngine {
     this.playTime = 0;
     this.hasWon = false;
     this.creatures = [];
+    this.pellets = [];
     this.initCreatures();
+    this.initPellets();
   }
 
   private initCreatures(): void {
     for (let i = 0; i < GameConstants.CREATURE_COUNT; i++) {
       this.spawnCreature();
+    }
+  }
+
+  private initPellets(): void {
+    for (let i = 0; i < GameConstants.PELLET_COUNT; i++) {
+      this.spawnPellet();
     }
   }
 
@@ -116,6 +131,13 @@ export class GameEngine {
     creature.x = Math.random() * GameConstants.WORLD_WIDTH;
     creature.y = Math.random() * GameConstants.WORLD_HEIGHT;
     this.creatures.push(creature);
+  }
+
+  private spawnPellet(): void {
+    const pellet = new Pellet();
+    pellet.x = Math.random() * GameConstants.WORLD_WIDTH;
+    pellet.y = Math.random() * GameConstants.WORLD_HEIGHT;
+    this.pellets.push(pellet);
   }
 
   setPlayerTarget(worldX: number, worldY: number): void {
@@ -140,6 +162,9 @@ export class GameEngine {
     // NPC 之间互相吞噬
     this.checkCreatureCollisions();
 
+    // 玩家/NPC 吞噬小豆豆
+    this.checkPelletCollisions();
+
     // 检查玩家碰撞
     this.checkPlayerCollisions();
 
@@ -151,6 +176,12 @@ export class GameEngine {
     if (this.spawnTimer >= GameConstants.CREATURE_SPAWN_INTERVAL && this.creatures.length < GameConstants.CREATURE_COUNT * 1.5) {
       this.spawnCreature();
       this.spawnTimer = 0;
+    }
+    this.pelletSpawnTimer += deltaTime * 1000;
+    if (this.pelletSpawnTimer >= GameConstants.PELLET_SPAWN_INTERVAL &&
+      this.pellets.length < GameConstants.PELLET_COUNT * 1.6) {
+      this.spawnPellet();
+      this.pelletSpawnTimer = 0;
     }
 
     // 检查胜利条件
@@ -220,6 +251,37 @@ export class GameEngine {
     }
   }
 
+  private checkPelletCollisions(): void {
+    for (let i = this.pellets.length - 1; i >= 0; i--) {
+      const pellet = this.pellets[i];
+      let eaten = false;
+
+      const pdx = this.player.x - pellet.x;
+      const pdy = this.player.y - pellet.y;
+      const playerDistance = Math.sqrt(pdx * pdx + pdy * pdy);
+      if (playerDistance < this.player.getRadius() + pellet.radius) {
+        this.score += pellet.scoreValue;
+        this.pellets.splice(i, 1);
+        continue;
+      }
+
+      for (const creature of this.creatures) {
+        const dx = creature.x - pellet.x;
+        const dy = creature.y - pellet.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < creature.getRadius() + pellet.radius) {
+          creature.addScore(pellet.scoreValue);
+          eaten = true;
+          break;
+        }
+      }
+
+      if (eaten) {
+        this.pellets.splice(i, 1);
+      }
+    }
+  }
+
   private getEatGainScore(targetScore: number, ratio: number): number {
     const gain = Math.floor(targetScore * ratio);
     return Math.max(1, gain);
@@ -233,7 +295,9 @@ export class GameEngine {
     this.hasWon = false;
     this.gameState = GameState.IDLE;
     this.creatures = [];
+    this.pellets = [];
     this.spawnTimer = 0;
+    this.pelletSpawnTimer = 0;
     this.camera = new Camera();
   }
 }

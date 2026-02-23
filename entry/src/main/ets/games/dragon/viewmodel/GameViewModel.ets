@@ -1,6 +1,7 @@
 import { GameEngine, Camera } from './GameEngine';
 import { Player } from '../../../model/Player';
 import { Creature } from '../../../model/Creature';
+import { Pellet } from '../../../model/Pellet';
 import { GameState } from '../../../model/GameState';
 
 @Observed
@@ -29,6 +30,10 @@ export class GameViewModel {
 
   get creatures(): Creature[] {
     return this.engine.getCreatures();
+  }
+
+  get pellets(): Pellet[] {
+    return this.engine.getPellets();
   }
 
   getCamera(): Camera {

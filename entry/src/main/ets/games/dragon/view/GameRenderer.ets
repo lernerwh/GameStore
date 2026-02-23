@@ -1,5 +1,6 @@
 import { Player } from '../../../model/Player';
 import { Creature } from '../../../model/Creature';
+import { Pellet } from '../../../model/Pellet';
 import { GameState } from '../../../model/GameState';
 import { GameConstants } from '../../../common/constants/GameConstants';
 import { Camera, Point } from '../viewmodel/GameEngine';
@@ -26,6 +27,7 @@ export class GameRenderer {
     canvas: CanvasRenderingContext2D,
     player: Player,
     creatures: Creature[],
+    pellets: Pellet[],
     score: number,
     gameState: GameState,
     hasWon: boolean,
@@ -38,10 +40,11 @@ export class GameRenderer {
     this.drawBackground(canvas);
 
     if (gameState === GameState.PLAYING || gameState === GameState.GAME_OVER) {
+      this.drawPellets(canvas, pellets, camera);
       this.drawCreatures(canvas, creatures, camera, player);
       this.drawPlayer(canvas, player, camera);
       this.drawBoundaryWarning(canvas, player, camera);
-      this.drawMinimap(canvas, player, creatures, camera);
+      this.drawMinimap(canvas, player, creatures, pellets, camera);
       this.drawHUD(canvas, player, score, playTime);
       this.drawJoystick(canvas, joystickState);
     }
@@ -226,6 +229,21 @@ export class GameRenderer {
     }
   }
 
+  private drawPellets(canvas: CanvasRenderingContext2D, pellets: Pellet[], camera: Camera): void {
+    canvas.fillStyle = '#FFD54F';
+    for (const pellet of pellets) {
+      const screenPos: Point = camera.worldToScreen(pellet.x, pellet.y);
+      const radius = pellet.radius;
+      if (screenPos.x + radius < 0 || screenPos.x - radius > this.canvasWidth ||
+        screenPos.y + radius < 0 || screenPos.y - radius > this.canvasHeight) {
+        continue;
+      }
+      canvas.beginPath();
+      canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
+      canvas.fill();
+    }
+  }
+
   private drawBoundaryWarning(canvas: CanvasRenderingContext2D, player: Player, camera: Camera): void {
     const warningDistance = 100;
     const playerRadius = player.getRadius();
@@ -250,7 +268,7 @@ export class GameRenderer {
     }
   }
 
-  private drawMinimap(canvas: CanvasRenderingContext2D, player: Player, creatures: Creature[], camera: Camera): void {
+  private drawMinimap(canvas: CanvasRenderingContext2D, player: Player, creatures: Creature[], pellets: Pellet[], camera: Camera): void {
     const minimapSize = 80;
     const minimapX = this.canvasWidth - minimapSize - 10;
     const minimapY = 10;
@@ -284,6 +302,16 @@ export class GameRenderer {
       }
       canvas.beginPath();
       canvas.arc(dotX, dotY, 2, 0, Math.PI * 2);
+      canvas.fill();
+    }
+
+    // 绘制小豆豆（亮黄色）
+    canvas.fillStyle = '#FFD54F';
+    for (const pellet of pellets) {
+      const dotX = minimapX + pellet.x * scaleX;
+      const dotY = minimapY + pellet.y * scaleY;
+      canvas.beginPath();
+      canvas.arc(dotX, dotY, 1, 0, Math.PI * 2);
       canvas.fill();
     }
 

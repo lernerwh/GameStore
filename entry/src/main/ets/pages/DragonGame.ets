@@ -425,6 +425,7 @@ struct DragonGame {
       this.canvasContext,
       this.viewModel.player,
       this.viewModel.creatures,
+      this.viewModel.pellets,
       this.viewModel.score,
       this.viewModel.gameState,
       this.viewModel.hasWon,
