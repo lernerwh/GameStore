@@ -231,7 +231,7 @@ struct AnimalRestaurantGame {
               this.restartGame();
             })
 
-          Text(`金币 ${this.viewModel.getRestaurant().coins}`)
+          Text(`金币 ${this.viewModel.coins}`)
             .fontSize(14)
             .fontColor('#5d4037')
             .backgroundColor('rgba(255,255,255,0.78)')
@@ -292,11 +292,14 @@ struct AnimalRestaurantGame {
   }
 
   private startGame(): void {
+    this.viewModel.destroy();
     this.isPlaying = true;
     this.viewModel = new GameViewModel();
+    this.isPaused = false;
   }
 
   private restartGame(): void {
+    this.viewModel.destroy();
     this.viewModel = new GameViewModel();
     this.viewModel.startGame();
     this.isPaused = false;

@@ -77,9 +77,12 @@ export class GameViewModel {
    * 开始游戏
    */
   startGame(): void {
+    // 防止重复开始导致多个循环同时运行
+    this.stopGameLoop();
     this.engine.startGame();
     this.gameState = this.engine.getGameState();
     this.startGameLoop();
+    this.syncState();
   }
 
   /**
@@ -102,6 +105,7 @@ export class GameViewModel {
    * 启动游戏循环
    */
   private startGameLoop(): void {
+    this.stopGameLoop();
     this.lastFrameTime = Date.now();
     this.intervalId = setInterval(() => {
       this.gameLoop();
