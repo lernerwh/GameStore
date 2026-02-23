@@ -59,10 +59,12 @@ export class GameRenderer {
   }
 
   private worldToScreen(worldX: number, worldY: number, worldZ: number = 0): ScreenPosition {
-    const cameraProgress = (this.cameraWorldX + this.cameraWorldY) / 2;
-    const progress = (worldX + worldY) / 2 - cameraProgress;
-    const screenX = progress * GameConstants.ISO_SCALE_X * 2 + this.canvasWidth / 2;
-    const screenY = this.canvasHeight * 0.62 - progress * GameConstants.ISO_SCALE_Y * 2 + worldZ * GameConstants.HEIGHT_SCALE;
+    const relX = worldX - this.cameraWorldX;
+    const relY = worldY - this.cameraWorldY;
+    const isoX = relX - relY;
+    const isoY = (relX + relY) * 0.5;
+    const screenX = this.canvasWidth / 2 + isoX * GameConstants.ISO_SCALE_X;
+    const screenY = this.canvasHeight * 0.62 - isoY * GameConstants.ISO_SCALE_Y + worldZ * GameConstants.HEIGHT_SCALE;
     return { x: screenX, y: screenY };
   }
 
