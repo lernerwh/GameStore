@@ -244,6 +244,13 @@ struct DragonGame {
         .justifyContent(FlexAlign.SpaceBetween)
         .margin({ bottom: 8 })
 
+        Text('提示：避开红色高等级生物，优先吃绿色目标')
+          .fontSize(12)
+          .fontColor('#fde68a')
+          .width(GameConstants.CANVAS_WIDTH)
+          .textAlign(TextAlign.Start)
+          .margin({ bottom: 6 })
+
         Canvas(this.canvasContext)
           .width(GameConstants.CANVAS_WIDTH)
           .height(GameConstants.CANVAS_HEIGHT)

@@ -20,6 +20,7 @@ export class GameRenderer {
   private canvasWidth: number = GameConstants.CANVAS_WIDTH;
   private canvasHeight: number = GameConstants.CANVAS_HEIGHT;
   private animTime: number = 0;
+  private joystickMaxDistance: number = 90;
 
   render(
     canvas: CanvasRenderingContext2D,
