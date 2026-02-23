@@ -65,7 +65,10 @@ export class GameEngine {
   constructor() {
     this.player = new Player();
     this.gameState = GameState.IDLE;
+    this.score = GameConstants.PLAYER_INITIAL_SCORE;
+    this.player.setScore(this.score);
     this.initCreatures();
+    this.initPellets();
   }
 
   getPlayer(): Player {
@@ -103,7 +106,7 @@ export class GameEngine {
   startGame(): void {
     this.gameState = GameState.PLAYING;
     this.player.reset();
-    this.score = 0;
+    this.score = GameConstants.PLAYER_INITIAL_SCORE;
     this.player.setScore(this.score);
     this.playTime = 0;
     this.hasWon = false;
@@ -289,7 +292,7 @@ export class GameEngine {
 
   reset(): void {
     this.player.reset();
-    this.score = 0;
+    this.score = GameConstants.PLAYER_INITIAL_SCORE;
     this.player.setScore(this.score);
     this.playTime = 0;
     this.hasWon = false;

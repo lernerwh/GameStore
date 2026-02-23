@@ -16,6 +16,7 @@ export class GameConstants {
 
   // 游戏规则
   static readonly SCORE_PER_HIT: number = 1;
+  static readonly PLAYER_INITIAL_SCORE: number = 18;
   static readonly WIN_SCORE: number = 2000;
   static readonly MIN_EAT_SIZE_RATIO: number = 1.05;
   static readonly PLAYER_EAT_SCORE_RATIO: number = 0.65;
