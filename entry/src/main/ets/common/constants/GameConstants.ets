@@ -1,5 +1,5 @@
 /**
- * 召唤神龙 游戏常量定义
+ * 球球大作战 游戏常量定义
  */
 export class GameConstants {
   // 画布尺寸
@@ -18,7 +18,7 @@ export class GameConstants {
   static readonly SCORE_PER_HIT: number = 1;
   static readonly PLAYER_INITIAL_SCORE: number = 18;
   static readonly WIN_SCORE: number = 2000;
-  static readonly POST_DRAGON_RADIUS_PER_SCORE: number = 0.01;
+  static readonly POST_MAX_LEVEL_RADIUS_PER_SCORE: number = 0.01;
   static readonly MIN_EAT_SIZE_RATIO: number = 1.05;
   static readonly PLAYER_EAT_SCORE_RATIO: number = 0.65;
   static readonly NPC_EAT_SCORE_RATIO: number = 0.55;
@@ -43,35 +43,35 @@ export class GameConstants {
 
   // 进化等级名称
   static readonly EVOLUTION_NAMES: string[] = [
-    '浮游生物',
-    '小虾',
-    '小鱼',
-    '中鱼',
-    '大鱼',
-    '海龟',
-    '海豚',
-    '鲨鱼',
-    '虎鲸',
-    '神龙'
+    '微球',
+    '小球',
+    '速球',
+    '跃球',
+    '战球',
+    '巨球',
+    '霸球',
+    '领主球',
+    '星核球',
+    '球王'
   ];
 
   // 进化等级颜色
   static readonly EVOLUTION_COLORS: string[] = [
-    '#90EE90', // 浮游生物 - 浅绿
-    '#98FB98', // 小虾 - 淡绿
-    '#00CED1', // 小鱼 - 青色
-    '#1E90FF', // 中鱼 - 道奇蓝
-    '#4169E1', // 大鱼 - 皇家蓝
-    '#8A2BE2', // 海龟 - 紫罗兰
-    '#FF6347', // 海豚 - 番茄红
-    '#FF4500', // 鲨鱼 - 橙红
-    '#DC143C', // 虎鲸 - 深红
-    '#FFD700'  // 神龙 - 金色
+    '#A7F3D0', // 微球
+    '#6EE7B7', // 小球
+    '#34D399', // 速球
+    '#22D3EE', // 跃球
+    '#38BDF8', // 战球
+    '#60A5FA', // 巨球
+    '#A78BFA', // 霸球
+    '#F472B6', // 领主球
+    '#F97316', // 星核球
+    '#FACC15'  // 球王
   ];
 
   // 进化等级大小
   static readonly EVOLUTION_SIZES: number[] = [
-    15,  // 浮游生物
+    15,  // 微球
     20,  // 小虾
     28,  // 小鱼
     38,  // 中鱼
@@ -80,12 +80,12 @@ export class GameConstants {
     85,  // 海豚
     110, // 鲨鱼
     140, // 虎鲸
-    180  // 神龙
+    180  // 球王
   ];
 
   // 进化所需分数
   static readonly EVOLUTION_SCORES: number[] = [
-    0,    // 浮游生物
+    0,    // 微球
     30,   // 小虾
     80,   // 小鱼
     150,  // 中鱼
@@ -94,7 +94,7 @@ export class GameConstants {
     600,  // 海豚
     900,  // 鲨鱼
     1300, // 虎鲸
-    2000  // 神龙
+    2000  // 球王
   ];
 
   // 生物数量配置
@@ -138,7 +138,7 @@ export class GameConstants {
       return minRadius + (maxRadius - minRadius) * progress;
     }
 
-    return maxRadius + (safeScore - GameConstants.WIN_SCORE) * GameConstants.POST_DRAGON_RADIUS_PER_SCORE;
+    return maxRadius + (safeScore - GameConstants.WIN_SCORE) * GameConstants.POST_MAX_LEVEL_RADIUS_PER_SCORE;
   }
 
   static getSpawnScoreByLevel(level: number): number {

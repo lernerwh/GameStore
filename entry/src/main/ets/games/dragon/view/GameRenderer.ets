@@ -15,7 +15,7 @@ export interface JoystickRenderState {
 }
 
 /**
- * 游戏渲染器 - 召唤神龙
+ * 游戏渲染器 - 球球大作战
  */
 export class GameRenderer {
   private canvasWidth: number = GameConstants.CANVAS_WIDTH;
@@ -61,11 +61,11 @@ export class GameRenderer {
   }
 
   private drawBackground(canvas: CanvasRenderingContext2D): void {
-    // 深海渐变背景
+    // 竞技场渐变背景
     const gradient = canvas.createLinearGradient(0, 0, 0, this.canvasHeight);
-    gradient.addColorStop(0, '#0a1628');
-    gradient.addColorStop(0.5, '#1a4a7a');
-    gradient.addColorStop(1, '#0d2847');
+    gradient.addColorStop(0, '#061123');
+    gradient.addColorStop(0.5, '#102a43');
+    gradient.addColorStop(1, '#0b1f33');
     canvas.fillStyle = gradient;
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
@@ -337,7 +337,7 @@ export class GameRenderer {
     canvas.font = 'bold 28px sans-serif';
     canvas.textAlign = 'left';
     canvas.textBaseline = 'top';
-    canvas.fillText(`分数 ${score}`, 16, 12);
+    canvas.fillText(`体积 ${score}`, 16, 12);
 
     // 游戏时间
     const minutes = Math.floor(playTime / 60);
@@ -370,7 +370,7 @@ export class GameRenderer {
 
     canvas.fillStyle = '#88AFC7';
     canvas.font = '14px sans-serif';
-    canvas.fillText('成长', barX, 62);
+    canvas.fillText('进度', barX, 62);
 
     canvas.fillStyle = 'rgba(255,255,255,0.2)';
     canvas.fillRect(barX, barY, barW, barH);
@@ -388,7 +388,7 @@ export class GameRenderer {
     canvas.fillStyle = '#FFFFFF';
     canvas.font = '14px sans-serif';
     if (isMaxLevel) {
-      canvas.fillText('神龙+', barX + barW + 7, barY - 3);
+      canvas.fillText('球王+', barX + barW + 7, barY - 3);
     } else {
       canvas.fillText(`${Math.floor(progress * 100)}%`, barX + barW + 8, barY - 3);
     }
@@ -472,7 +472,7 @@ export class GameRenderer {
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     // 添加边框
-    canvas.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+    canvas.strokeStyle = 'rgba(34, 211, 238, 0.35)';
     canvas.lineWidth = 4;
     canvas.strokeRect(20, 20, this.canvasWidth - 40, this.canvasHeight - 40);
 
@@ -482,7 +482,7 @@ export class GameRenderer {
     canvas.font = `bold ${Math.floor(76 * pulse)}px sans-serif`;
     canvas.textAlign = 'center';
     canvas.textBaseline = 'middle';
-    canvas.fillText('点击开始游戏', this.canvasWidth / 2, this.canvasHeight / 2);
+    canvas.fillText('点击开始球局', this.canvasWidth / 2, this.canvasHeight / 2);
   }
 
   private drawGameOver(canvas: CanvasRenderingContext2D, score: number, hasWon: boolean): void {
@@ -494,9 +494,9 @@ export class GameRenderer {
 
     if (hasWon) {
       // 胜利
-      canvas.fillStyle = '#FFD700';
+      canvas.fillStyle = '#22D3EE';
       canvas.font = 'bold 72px sans-serif';
-      canvas.fillText('🐉 恭喜你召唤出神龙! 🐉', this.canvasWidth / 2, this.canvasHeight / 2 - 80);
+      canvas.fillText('🏆 你已晋级球王! 🏆', this.canvasWidth / 2, this.canvasHeight / 2 - 80);
     } else {
       // 失败
       canvas.fillStyle = '#FF6B6B';
@@ -506,7 +506,7 @@ export class GameRenderer {
 
     canvas.fillStyle = '#FFFFFF';
     canvas.font = '52px sans-serif';
-    canvas.fillText(`最终分数: ${score}`, this.canvasWidth / 2, this.canvasHeight / 2 + 20);
+    canvas.fillText(`最终体积: ${score}`, this.canvasWidth / 2, this.canvasHeight / 2 + 20);
 
     canvas.fillStyle = '#AAAAAA';
     canvas.font = '42px sans-serif';

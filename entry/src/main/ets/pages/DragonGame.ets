@@ -17,7 +17,7 @@ struct DragonGame {
   @State viewModel: GameViewModel = new GameViewModel();
   @State isPaused: boolean = false;
   @State buttonScale: number = 1.0;
-  @State dragonBreathOffset: number = 0.0;
+  @State heroFloatOffset: number = 0.0;
   private renderer: GameRenderer = new GameRenderer();
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
@@ -43,22 +43,22 @@ struct DragonGame {
       this.startGame();
     }
 
-    // 启动龙动画
-    this.startDragonAnimation();
+    // 启动主页浮动动画
+    this.startHeroAnimation();
   }
 
   aboutToDisappear(): void {
     this.cleanup();
-    this.stopDragonAnimation();
+    this.stopHeroAnimation();
   }
 
-  private startDragonAnimation(): void {
+  private startHeroAnimation(): void {
     this.animationInterval = setInterval(() => {
-      this.dragonBreathOffset = Math.sin(Date.now() / 500) * 5;
+      this.heroFloatOffset = Math.sin(Date.now() / 500) * 5;
     }, 50);
   }
 
-  private stopDragonAnimation(): void {
+  private stopHeroAnimation(): void {
     if (this.animationInterval !== null) {
       clearInterval(this.animationInterval);
       this.animationInterval = null;
@@ -111,38 +111,44 @@ struct DragonGame {
           Text('球球大作战')
             .fontSize(52)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#FFD700')
-            .textShadow({ radius: 10, color: '#FF6B00', offsetX: 0, offsetY: 0 })
+            .fontColor('#E0F2FE')
+            .textShadow({ radius: 12, color: '#22D3EE', offsetX: 0, offsetY: 0 })
             .margin({ top: 30, bottom: 20 })
 
-          Text('🐉')
-            .fontSize(100)
-            .offset({ y: this.dragonBreathOffset })
-            .margin({ bottom: 30 })
+          Row({ space: 12 }) {
+            Text('⚪')
+              .fontSize(64)
+            Text('🔵')
+              .fontSize(76)
+            Text('🟢')
+              .fontSize(58)
+          }
+          .offset({ y: this.heroFloatOffset })
+          .margin({ bottom: 26 })
 
-          Text('进化成长游戏')
+          Text('吞噬成长竞技')
             .fontSize(24)
-            .fontColor('#AAAAAA')
+            .fontColor('#BAE6FD')
             .margin({ bottom: 10 })
 
-          Text('从浮游生物进化成神龙!')
+          Text('吃小躲大，持续发育成为球场霸主!')
             .fontSize(20)
-            .fontColor('#888888')
+            .fontColor('#93C5FD')
             .margin({ bottom: 50 })
 
           Row({ space: 10 }) {
-            Text('生存进化')
+            Text('吞噬对抗')
               .fontSize(12)
-              .fontColor('#fde68a')
+              .fontColor('#BAE6FD')
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .backgroundColor('rgba(251,191,36,0.2)')
+              .backgroundColor('rgba(34,211,238,0.22)')
               .borderRadius(14)
 
-            Text('双操控')
+            Text('即时博弈')
               .fontSize(12)
-              .fontColor('#fde68a')
+              .fontColor('#BAE6FD')
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .backgroundColor('rgba(251,191,36,0.2)')
+              .backgroundColor('rgba(34,211,238,0.22)')
               .borderRadius(14)
           }
           .margin({ bottom: 20 })
@@ -155,37 +161,37 @@ struct DragonGame {
 
             Text('• 手指任意位置按下并拖拽摇杆控制方向')
               .fontSize(18)
-              .fontColor('#CCCCCC')
+              .fontColor('#D1D5DB')
               .margin({ bottom: 10 })
 
-            Text('• 吃掉比你小的生物成长')
+            Text('• 吃掉比你小的球体成长')
               .fontSize(18)
-              .fontColor('#90EE90')
+              .fontColor('#86EFAC')
               .margin({ bottom: 10 })
 
-            Text('• 躲避比你大的生物')
+            Text('• 躲避比你大的球体')
               .fontSize(18)
-              .fontColor('#FF6B6B')
+              .fontColor('#FCA5A5')
               .margin({ bottom: 10 })
 
-            Text('• 目标：进化成神龙!')
+            Text('• 目标：成为球王并继续扩张!')
               .fontSize(18)
-              .fontColor('#FFD700')
+              .fontColor('#FDE68A')
               .margin({ bottom: 20 })
           }
           .padding(25)
-          .backgroundColor('rgba(255,255,255,0.1)')
+          .backgroundColor('rgba(148, 163, 184, 0.16)')
           .borderRadius(15)
           .margin({ bottom: 40 })
 
           Button('开始游戏')
             .fontSize(28)
             .fontColor('#FFFFFF')
-            .backgroundColor('#4CAF50')
+            .backgroundColor('#0EA5E9')
             .borderRadius(30)
             .width(200)
             .height(60)
-            .shadow({ radius: 15, color: '#4CAF50', offsetX: 0, offsetY: 5 })
+            .shadow({ radius: 15, color: '#0EA5E9', offsetX: 0, offsetY: 5 })
             .scale({ x: this.buttonScale, y: this.buttonScale })
             .onClick(() => {
               this.buttonScale = 0.95;
@@ -207,7 +213,7 @@ struct DragonGame {
     .height('100%')
     .linearGradient({
       angle: 180,
-      colors: [['#0a1628', 0.0], ['#1a4a7a', 0.5], ['#0d2847', 1.0]]
+      colors: [['#061123', 0.0], ['#102a43', 0.5], ['#0b1f33', 1.0]]
     })
   }
 
@@ -236,17 +242,17 @@ struct DragonGame {
               this.restartGame();
             })
 
-          Text(`分数 ${this.viewModel.score} · ${Math.floor(this.viewModel.playTime)}s`)
+          Text(`体积 ${this.viewModel.score} · ${Math.floor(this.viewModel.playTime)}s`)
             .fontSize(14)
-            .fontColor('#fef3c7')
+            .fontColor('#BAE6FD')
         }
         .width(GameConstants.CANVAS_WIDTH)
         .justifyContent(FlexAlign.SpaceBetween)
         .margin({ bottom: 8 })
 
-        Text('提示：避开红色高等级生物，优先吃绿色目标')
+        Text('提示：避开红圈大球，优先追逐绿圈小球')
           .fontSize(12)
-          .fontColor('#fde68a')
+          .fontColor('#BFDBFE')
           .width(GameConstants.CANVAS_WIDTH)
           .textAlign(TextAlign.Start)
           .margin({ bottom: 6 })
