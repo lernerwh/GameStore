@@ -75,19 +75,29 @@ export class SummonDragonEngine {
   readonly WORLD_HEIGHT: number = 3200;
 
   private readonly PLAYER_SPEED: number = 240;
+  private readonly PLAYER_ACCEL: number = 1350;
+  private readonly PLAYER_DRAG: number = 4.8;
   private readonly MAX_NPC: number = 55;
   private readonly MIN_NPC: number = 40;
   private readonly NPC_SPAWN_INTERVAL_MS: number = 900;
+  private readonly START_SAFE_TIME_SEC: number = 2.2;
 
   private readonly LEVEL_RADII: number[] = [10, 14, 20, 26, 34, 46, 60, 78, 100, 128];
-  private readonly COLLISION_PADDING: number = 1.2;
+  // 分场景碰撞阈值，降低误判热区。
+  private readonly COLLISION_PLAYER_ABSORB: number = 0.72;
+  private readonly COLLISION_PLAYER_DIE: number = 0.58;
+  private readonly COLLISION_NPC_NPC: number = 0.7;
+  private readonly COLLISION_NPC_COMPANION: number = 0.68;
 
   private nextId: number = 1;
   private playerX: number = this.WORLD_WIDTH / 2;
   private playerY: number = this.WORLD_HEIGHT / 2;
+  private playerVx: number = 0;
+  private playerVy: number = 0;
   private playerTargetX: number = this.playerX;
   private playerTargetY: number = this.playerY;
   private playerLevel: number = 2;
+  private safeTimeRemaining: number = 0;
 
   // 各等级单位数量，包含玩家本体。通过 3 合 1 规则演化。
   private teamCounts: number[] = new Array(10).fill(0);
@@ -214,9 +224,12 @@ export class SummonDragonEngine {
     this.nextId = 1;
     this.playerX = this.WORLD_WIDTH / 2;
     this.playerY = this.WORLD_HEIGHT / 2;
+    this.playerVx = 0;
+    this.playerVy = 0;
     this.playerTargetX = this.playerX;
     this.playerTargetY = this.playerY;
     this.playerLevel = 2;
+    this.safeTimeRemaining = this.START_SAFE_TIME_SEC;
 
     this.teamCounts = new Array(10).fill(0);
     this.teamCounts[this.playerLevel] = 1;
@@ -242,15 +255,40 @@ export class SummonDragonEngine {
     const dx = this.playerTargetX - this.playerX;
     const dy = this.playerTargetY - this.playerY;
     const d = Math.sqrt(dx * dx + dy * dy);
-    if (d > 1) {
-      const step = Math.min(d, this.PLAYER_SPEED * deltaTime);
-      this.playerX += (dx / d) * step;
-      this.playerY += (dy / d) * step;
+    if (d > 0.01) {
+      const nx = dx / d;
+      const ny = dy / d;
+      const speedRatio = Math.min(1, d / 220);
+      const desiredVx = nx * this.PLAYER_SPEED * speedRatio;
+      const desiredVy = ny * this.PLAYER_SPEED * speedRatio;
+
+      const lerp = Math.min(1, this.PLAYER_ACCEL * deltaTime / this.PLAYER_SPEED);
+      this.playerVx += (desiredVx - this.playerVx) * lerp;
+      this.playerVy += (desiredVy - this.playerVy) * lerp;
+    } else {
+      const drag = Math.max(0, 1 - this.PLAYER_DRAG * deltaTime);
+      this.playerVx *= drag;
+      this.playerVy *= drag;
     }
 
+    this.playerX += this.playerVx * deltaTime;
+    this.playerY += this.playerVy * deltaTime;
+
     const r = this.getPlayerRadius();
-    this.playerX = Math.max(r, Math.min(this.WORLD_WIDTH - r, this.playerX));
-    this.playerY = Math.max(r, Math.min(this.WORLD_HEIGHT - r, this.playerY));
+    const clampedX = Math.max(r, Math.min(this.WORLD_WIDTH - r, this.playerX));
+    const clampedY = Math.max(r, Math.min(this.WORLD_HEIGHT - r, this.playerY));
+    if (clampedX !== this.playerX) {
+      this.playerVx = 0;
+    }
+    if (clampedY !== this.playerY) {
+      this.playerVy = 0;
+    }
+    this.playerX = clampedX;
+    this.playerY = clampedY;
+
+    if (this.safeTimeRemaining > 0) {
+      this.safeTimeRemaining = Math.max(0, this.safeTimeRemaining - deltaTime);
+    }
   }
 
   private updateNpcs(deltaTime: number): void {
@@ -288,14 +326,17 @@ export class SummonDragonEngine {
       const dx = n.x - this.playerX;
       const dy = n.y - this.playerY;
       const d = Math.sqrt(dx * dx + dy * dy);
-      if (d > (pr + nr) * this.COLLISION_PADDING) {
-        continue;
-      }
 
       if (n.level <= this.playerLevel) {
+        if (d > (pr + nr) * this.COLLISION_PLAYER_ABSORB) {
+          continue;
+        }
         this.absorbNpc(n);
         this.npcs.splice(i, 1);
       } else {
+        if (d > (pr + nr) * this.COLLISION_PLAYER_DIE || this.safeTimeRemaining > 0) {
+          continue;
+        }
         this.gameState = GameState.GAME_OVER;
         return;
       }
@@ -324,7 +365,7 @@ export class SummonDragonEngine {
         const dx = a.x - b.x;
         const dy = a.y - b.y;
         const d = Math.sqrt(dx * dx + dy * dy);
-        if (d > (ar + br) * this.COLLISION_PADDING) {
+        if (d > (ar + br) * this.COLLISION_NPC_NPC) {
           continue;
         }
 
@@ -364,7 +405,7 @@ export class SummonDragonEngine {
         const dx = npc.x - cp.x;
         const dy = npc.y - cp.y;
         const d = Math.sqrt(dx * dx + dy * dy);
-        if (d > (nr + cr) * this.COLLISION_PADDING) {
+        if (d > (nr + cr) * this.COLLISION_NPC_COMPANION) {
           continue;
         }
 
