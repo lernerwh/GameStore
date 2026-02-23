@@ -541,20 +541,47 @@ export class SummonDragonEngine {
   }
 
   private randomNpcLevel(): number {
+    // 生成等级跟随玩家成长，避免开局刷出大量顶级单位。
+    const p = this.playerLevel;
+    const earlyPhase = this.playTime < 25;
+    const midPhase = this.playTime < 90;
+
+    // 前期严格限制上限，中后期逐步放开。
+    let maxLevel = p + 2;
+    if (earlyPhase) {
+      maxLevel = p + 1;
+    } else if (midPhase) {
+      maxLevel = p + 2;
+    } else {
+      maxLevel = p + 3;
+    }
+    maxLevel = Math.max(2, Math.min(9, maxLevel));
+
+    const lowMin = Math.max(0, p - 3);
+    const lowMax = Math.max(lowMin, Math.min(maxLevel, p));
+    const midMin = Math.max(0, p - 1);
+    const midMax = Math.max(midMin, Math.min(maxLevel, p + 1));
+    const highMin = Math.max(0, Math.min(maxLevel, p + 1));
+    const highMax = Math.max(highMin, Math.min(maxLevel, p + 2));
+
     const r = Math.random();
-    if (r < 0.24) {
-      return Math.floor(Math.random() * 3);
-    }
-    if (r < 0.48) {
-      return 2 + Math.floor(Math.random() * 3);
-    }
-    if (r < 0.72) {
-      return 4 + Math.floor(Math.random() * 3);
+    if (r < 0.62) {
+      // 主体：可吃和同级，保证可玩性。
+      return this.randomInt(lowMin, lowMax);
     }
     if (r < 0.9) {
-      return 6 + Math.floor(Math.random() * 2);
+      // 次主体：同级上下浮动。
+      return this.randomInt(midMin, midMax);
     }
-    return 8 + Math.floor(Math.random() * 2);
+    // 少量高威胁单位，随玩家成长再出现。
+    return this.randomInt(highMin, highMax);
+  }
+
+  private randomInt(min: number, max: number): number {
+    if (max <= min) {
+      return min;
+    }
+    return min + Math.floor(Math.random() * (max - min + 1));
   }
 
   // 视野规则：等级越高、队伍规模越大，镜头越拉远（zoom 越小）。
