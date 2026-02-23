@@ -8,30 +8,38 @@ export class Creature {
   y: number = 0;
   velocityX: number = 0;
   velocityY: number = 0;
+  score: number = 0;
   evolutionLevel: number = 0;
 
-  constructor() {
+  constructor(initialScore?: number) {
     // 随机进化等级 (0-9)，但偏向低等级
-    const rand = Math.random();
-    if (rand < 0.4) {
-      this.evolutionLevel = Math.floor(Math.random() * 3); // 0-2
-    } else if (rand < 0.7) {
-      this.evolutionLevel = Math.floor(Math.random() * 5); // 0-4
-    } else if (rand < 0.9) {
-      this.evolutionLevel = Math.floor(Math.random() * 7); // 0-6
+    if (typeof initialScore === 'number') {
+      this.score = Math.max(0, initialScore);
     } else {
-      this.evolutionLevel = Math.floor(Math.random() * 10); // 0-9
+      const rand = Math.random();
+      let level = 0;
+      if (rand < 0.4) {
+        level = Math.floor(Math.random() * 3); // 0-2
+      } else if (rand < 0.7) {
+        level = Math.floor(Math.random() * 5); // 0-4
+      } else if (rand < 0.9) {
+        level = Math.floor(Math.random() * 7); // 0-6
+      } else {
+        level = Math.floor(Math.random() * 10); // 0-9
+      }
+      this.score = GameConstants.getSpawnScoreByLevel(level);
     }
+    this.evolutionLevel = GameConstants.getEvolutionLevelByScore(this.score);
 
-    // 根据进化等级设置速度
-    const speed = 40 + Math.random() * 40 - this.evolutionLevel * 3;
+    // 根据体型设置速度（越大越慢）
+    const speed = 45 + Math.random() * 45 - this.getRadius() * 0.2;
     const angle = Math.random() * Math.PI * 2;
     this.velocityX = Math.cos(angle) * speed;
     this.velocityY = Math.sin(angle) * speed;
   }
 
   getRadius(): number {
-    return GameConstants.EVOLUTION_SIZES[this.evolutionLevel] / 2;
+    return GameConstants.getRadiusByScore(this.score);
   }
 
   getColor(): string {
@@ -40,6 +48,11 @@ export class Creature {
 
   getName(): string {
     return GameConstants.EVOLUTION_NAMES[this.evolutionLevel];
+  }
+
+  addScore(deltaScore: number): void {
+    this.score = Math.max(0, this.score + deltaScore);
+    this.evolutionLevel = GameConstants.getEvolutionLevelByScore(this.score);
   }
 
   update(deltaTime: number): void {

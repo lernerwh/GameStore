@@ -6,6 +6,7 @@ import { GameConstants } from '../common/constants/GameConstants';
 export class Player {
   x: number;
   y: number;
+  score: number = 0;
   evolutionLevel: number = 0;
   private targetX: number = 0;
   private targetY: number = 0;
@@ -14,11 +15,12 @@ export class Player {
   constructor() {
     this.x = GameConstants.WORLD_WIDTH / 2;
     this.y = GameConstants.WORLD_HEIGHT / 2;
+    this.score = 0;
     this.evolutionLevel = 0;
   }
 
   getRadius(): number {
-    return GameConstants.EVOLUTION_SIZES[this.evolutionLevel] / 2;
+    return GameConstants.getRadiusByScore(this.score);
   }
 
   getColor(): string {
@@ -27,6 +29,11 @@ export class Player {
 
   getName(): string {
     return GameConstants.EVOLUTION_NAMES[this.evolutionLevel];
+  }
+
+  setScore(score: number): void {
+    this.score = Math.max(0, score);
+    this.evolutionLevel = GameConstants.getEvolutionLevelByScore(this.score);
   }
 
   setTarget(worldX: number, worldY: number): void {
@@ -38,6 +45,7 @@ export class Player {
   reset(): void {
     this.x = GameConstants.WORLD_WIDTH / 2;
     this.y = GameConstants.WORLD_HEIGHT / 2;
+    this.score = 0;
     this.evolutionLevel = 0;
     this.targetX = this.x;
     this.targetY = this.y;

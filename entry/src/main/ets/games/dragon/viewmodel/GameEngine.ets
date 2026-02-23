@@ -97,6 +97,7 @@ export class GameEngine {
     this.gameState = GameState.PLAYING;
     this.player.reset();
     this.score = 0;
+    this.player.setScore(this.score);
     this.playTime = 0;
     this.hasWon = false;
     this.creatures = [];
@@ -136,11 +137,14 @@ export class GameEngine {
       creature.update(deltaTime);
     }
 
-    // 检查碰撞
-    this.checkCollisions();
+    // NPC 之间互相吞噬
+    this.checkCreatureCollisions();
 
-    // 检查进化
-    this.checkEvolution();
+    // 检查玩家碰撞
+    this.checkPlayerCollisions();
+
+    // 玩家分数驱动线性体型与进化等级
+    this.player.setScore(this.score);
 
     // 定期生成新生物
     this.spawnTimer += deltaTime * 1000;
@@ -150,13 +154,13 @@ export class GameEngine {
     }
 
     // 检查胜利条件
-    if (this.player.evolutionLevel >= GameConstants.EVOLUTION_NAMES.length - 1) {
+    if (this.score >= GameConstants.WIN_SCORE) {
       this.hasWon = true;
       this.gameState = GameState.GAME_OVER;
     }
   }
 
-  private checkCollisions(): void {
+  private checkPlayerCollisions(): void {
     const playerRadius = this.player.getRadius();
 
     for (let i = this.creatures.length - 1; i >= 0; i--) {
@@ -167,11 +171,11 @@ export class GameEngine {
       const creatureRadius = creature.getRadius();
 
       if (distance < playerRadius + creatureRadius) {
-        if (creature.evolutionLevel <= this.player.evolutionLevel) {
+        if (playerRadius >= creatureRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
           // 吃掉生物
-          this.score += (creature.evolutionLevel + 1) * 10;
+          this.score += this.getEatGainScore(creature.score, GameConstants.PLAYER_EAT_SCORE_RATIO);
           this.creatures.splice(i, 1);
-        } else {
+        } else if (creatureRadius >= playerRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
           // 被吃掉，游戏结束
           this.gameState = GameState.GAME_OVER;
           return;
@@ -180,19 +184,51 @@ export class GameEngine {
     }
   }
 
-  private checkEvolution(): void {
-    const currentLevel = this.player.evolutionLevel;
-    if (currentLevel < GameConstants.EVOLUTION_SCORES.length - 1) {
-      const nextLevelScore = GameConstants.EVOLUTION_SCORES[currentLevel + 1];
-      if (this.score >= nextLevelScore) {
-        this.player.evolutionLevel = currentLevel + 1;
+  private checkCreatureCollisions(): void {
+    let i = 0;
+    while (i < this.creatures.length) {
+      let iRemoved = false;
+      let j = i + 1;
+
+      while (j < this.creatures.length) {
+        const a = this.creatures[i];
+        const b = this.creatures[j];
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const aRadius = a.getRadius();
+        const bRadius = b.getRadius();
+
+        if (distance < aRadius + bRadius) {
+          if (aRadius >= bRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
+            a.addScore(this.getEatGainScore(b.score, GameConstants.NPC_EAT_SCORE_RATIO));
+            this.creatures.splice(j, 1);
+            continue;
+          } else if (bRadius >= aRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
+            b.addScore(this.getEatGainScore(a.score, GameConstants.NPC_EAT_SCORE_RATIO));
+            this.creatures.splice(i, 1);
+            iRemoved = true;
+            break;
+          }
+        }
+        j++;
+      }
+
+      if (!iRemoved) {
+        i++;
       }
     }
+  }
+
+  private getEatGainScore(targetScore: number, ratio: number): number {
+    const gain = Math.floor(targetScore * ratio);
+    return Math.max(1, gain);
   }
 
   reset(): void {
     this.player.reset();
     this.score = 0;
+    this.player.setScore(this.score);
     this.playTime = 0;
     this.hasWon = false;
     this.gameState = GameState.IDLE;

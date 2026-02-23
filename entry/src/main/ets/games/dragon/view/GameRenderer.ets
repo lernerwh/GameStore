@@ -167,7 +167,7 @@ export class GameRenderer {
       // 根据相对大小决定边框颜色和效果
       let borderColor: string;
       let glowColor: string | undefined;
-      if (creature.evolutionLevel <= player.evolutionLevel) {
+      if (playerRadius >= radius * GameConstants.MIN_EAT_SIZE_RATIO) {
         borderColor = '#90EE90'; // 可以吃 - 绿色
         glowColor = 'rgba(144, 238, 144, 0.2)';
       } else {
@@ -176,7 +176,7 @@ export class GameRenderer {
       }
 
       // 危险生物添加脉冲效果
-      if (creature.evolutionLevel > player.evolutionLevel) {
+      if (radius >= playerRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
         const pulse = Math.sin(this.animTime / 300) * 0.15 + 1;
         const pulseRadius = radius * 1.2 * pulse;
         const pulseGradient = canvas.createRadialGradient(
@@ -277,7 +277,7 @@ export class GameRenderer {
       const dotX = minimapX + creature.x * scaleX;
       const dotY = minimapY + creature.y * scaleY;
 
-      if (creature.evolutionLevel <= player.evolutionLevel) {
+      if (player.getRadius() >= creature.getRadius() * GameConstants.MIN_EAT_SIZE_RATIO) {
         canvas.fillStyle = '#90EE90'; // 可食用 - 绿色
       } else {
         canvas.fillStyle = '#FF6B6B'; // 危险 - 红色

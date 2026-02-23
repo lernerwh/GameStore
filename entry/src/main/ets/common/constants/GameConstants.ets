@@ -16,6 +16,10 @@ export class GameConstants {
 
   // 游戏规则
   static readonly SCORE_PER_HIT: number = 1;
+  static readonly WIN_SCORE: number = 2000;
+  static readonly MIN_EAT_SIZE_RATIO: number = 1.05;
+  static readonly PLAYER_EAT_SCORE_RATIO: number = 0.65;
+  static readonly NPC_EAT_SCORE_RATIO: number = 0.55;
 
   // 颜色定义
   static readonly COLOR_BACKGROUND: string = '#0a1628';
@@ -85,4 +89,31 @@ export class GameConstants {
 
   // 摄像机配置
   static readonly CAMERA_FOLLOW_SPEED: number = 0.1;
+
+  static getEvolutionLevelByScore(score: number): number {
+    const clampedScore = Math.max(0, score);
+    for (let i = GameConstants.EVOLUTION_SCORES.length - 1; i >= 0; i--) {
+      if (clampedScore >= GameConstants.EVOLUTION_SCORES[i]) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
+  static getRadiusByScore(score: number): number {
+    const minRadius = GameConstants.EVOLUTION_SIZES[0] / 2;
+    const maxRadius = GameConstants.EVOLUTION_SIZES[GameConstants.EVOLUTION_SIZES.length - 1] / 2;
+    const clampedScore = Math.max(0, Math.min(score, GameConstants.WIN_SCORE));
+    const progress = clampedScore / GameConstants.WIN_SCORE;
+    return minRadius + (maxRadius - minRadius) * progress;
+  }
+
+  static getSpawnScoreByLevel(level: number): number {
+    const clampedLevel = Math.max(0, Math.min(level, GameConstants.EVOLUTION_SCORES.length - 1));
+    const min = GameConstants.EVOLUTION_SCORES[clampedLevel];
+    const max = clampedLevel >= GameConstants.EVOLUTION_SCORES.length - 1
+      ? GameConstants.WIN_SCORE
+      : GameConstants.EVOLUTION_SCORES[clampedLevel + 1] - 1;
+    return min + Math.floor(Math.random() * Math.max(1, max - min + 1));
+  }
 }
