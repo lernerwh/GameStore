@@ -1,11 +1,6 @@
 import { GameConstants } from './GameConstants';
 import { Rect, MathUtils } from './MathUtils';
 
-interface Direction {
-  x: number;
-  y: number;
-}
-
 /**
  * 平台/方块实体类 - 支持2.5D世界坐标
  */
@@ -92,15 +87,19 @@ export class Platform {
    * @param currentWorldY 当前方块世界Y坐标
    */
   static generateNext(currentWorldX: number, currentWorldY: number): Platform {
-    const gap = MathUtils.randomInt(GameConstants.PLATFORM_GAP_MIN, GameConstants.PLATFORM_GAP_MAX);
-    const directions: Direction[] = [
-      { x: 1, y: 1 },
-      { x: 1, y: -1 },
-      { x: -1, y: 1 }
-    ];
-    const d = directions[MathUtils.randomInt(0, directions.length - 1)];
-    const newWorldX = currentWorldX + d.x * gap;
-    const newWorldY = currentWorldY + d.y * gap;
-    return new Platform(newWorldX, newWorldY);
+    // 统一方向：固定朝右上（等距投影下视觉稳定），避免左右乱切换
+    const dirX = 1;
+    const dirY = 0;
+
+    // 间隔按尺寸约束，避免忽远忽近；再限制在全局可控区间
+    const nextSize = MathUtils.randomInt(GameConstants.PLATFORM_MIN_SIZE, GameConstants.PLATFORM_MAX_SIZE);
+    const sizeDrivenGap = Math.floor(nextSize * 1.45);
+    const jitter = MathUtils.randomInt(-12, 12);
+    const rawGap = sizeDrivenGap + jitter;
+    const gap = Math.max(GameConstants.PLATFORM_GAP_MIN, Math.min(GameConstants.PLATFORM_GAP_MAX, rawGap));
+
+    const newWorldX = currentWorldX + dirX * gap;
+    const newWorldY = currentWorldY + dirY * gap;
+    return new Platform(newWorldX, newWorldY, nextSize);
   }
 }
