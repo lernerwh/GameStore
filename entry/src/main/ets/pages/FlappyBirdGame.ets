@@ -143,6 +143,11 @@ struct FlappyBirdGame {
             .fontColor('#333333')
             .margin({ bottom: 40 })
 
+          Text(`本局目标: ${Math.max(5, this.highScore + 1)} 分`)
+            .fontSize(14)
+            .fontColor('#2f4f4f')
+            .margin({ bottom: 14 })
+
           // 开始游戏按钮
           Button('开始游戏')
             .fontSize(24)
