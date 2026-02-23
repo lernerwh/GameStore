@@ -93,8 +93,8 @@ export class SummonDragonEngine {
 
   private readonly LEVEL_RADII: number[] = [10, 14, 20, 26, 34, 46, 60, 78, 100, 128];
   // 分场景碰撞阈值，降低误判热区。
-  private readonly COLLISION_PLAYER_ABSORB: number = 0.72;
-  private readonly COLLISION_PLAYER_DIE: number = 0.58;
+  private readonly COLLISION_PLAYER_ABSORB: number = 0.82;
+  private readonly COLLISION_PLAYER_DIE: number = 0.5;
   private readonly COLLISION_NPC_NPC: number = 0.7;
   private readonly COLLISION_NPC_COMPANION: number = 0.68;
 
@@ -589,7 +589,7 @@ export class SummonDragonEngine {
     const levelProgress = this.playerLevel / (this.LEVEL_RADII.length - 1);
     const groupProgress = Math.min(1, this.getAbsorbedCount() / 18);
     const progress = Math.max(levelProgress, levelProgress * 0.7 + groupProgress * 0.3);
-    const minZoom = 0.3;
+    const minZoom = 0.42;
     return 1 - progress * (1 - minZoom);
   }
 }

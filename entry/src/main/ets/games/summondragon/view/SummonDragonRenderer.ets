@@ -156,7 +156,7 @@ export class SummonDragonRenderer {
   }
 
   private levelToSize(level: number): number {
-    const base = [24, 30, 38, 50, 62, 78, 96, 118, 146, 180];
+    const base = [24, 32, 44, 58, 76, 100, 130, 168, 214, 270];
     const idx = Math.max(0, Math.min(base.length - 1, level));
     return base[idx];
   }
