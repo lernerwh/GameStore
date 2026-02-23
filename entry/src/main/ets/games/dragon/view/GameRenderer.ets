@@ -81,7 +81,7 @@ export class GameRenderer {
 
   private drawPlayer(canvas: CanvasRenderingContext2D, player: Player, camera: Camera): void {
     const screenPos: Point = camera.worldToScreen(player.x, player.y);
-    const radius = player.getRadius();
+    const radius = camera.worldLengthToScreen(player.getRadius());
     const imageManager = ImageManager.getInstance();
     const imageKey = imageManager.getPlayerImageKey(player.evolutionLevel);
     const cachedImage = imageManager.getCachedImage(imageKey);
@@ -159,7 +159,8 @@ export class GameRenderer {
 
     for (const creature of creatures) {
       const screenPos: Point = camera.worldToScreen(creature.x, creature.y);
-      const radius = creature.getRadius();
+      const radius = camera.worldLengthToScreen(creature.getRadius());
+      const creatureWorldRadius = creature.getRadius();
 
       // 只绘制在屏幕内的生物
       if (screenPos.x + radius < 0 || screenPos.x - radius > this.canvasWidth ||
@@ -170,7 +171,7 @@ export class GameRenderer {
       // 根据相对大小决定边框颜色和效果
       let borderColor: string;
       let glowColor: string | undefined;
-      if (playerRadius >= radius * GameConstants.MIN_EAT_SIZE_RATIO) {
+      if (playerRadius >= creatureWorldRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
         borderColor = '#90EE90'; // 可以吃 - 绿色
         glowColor = 'rgba(144, 238, 144, 0.2)';
       } else {
@@ -179,7 +180,7 @@ export class GameRenderer {
       }
 
       // 危险生物添加脉冲效果
-      if (radius >= playerRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
+      if (creatureWorldRadius >= playerRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
         const pulse = Math.sin(this.animTime / 300) * 0.15 + 1;
         const pulseRadius = radius * 1.2 * pulse;
         const pulseGradient = canvas.createRadialGradient(
@@ -233,7 +234,7 @@ export class GameRenderer {
     canvas.fillStyle = '#FFD54F';
     for (const pellet of pellets) {
       const screenPos: Point = camera.worldToScreen(pellet.x, pellet.y);
-      const radius = pellet.radius;
+      const radius = camera.worldLengthToScreen(pellet.radius);
       if (screenPos.x + radius < 0 || screenPos.x - radius > this.canvasWidth ||
         screenPos.y + radius < 0 || screenPos.y - radius > this.canvasHeight) {
         continue;
@@ -285,8 +286,8 @@ export class GameRenderer {
     // 绘制视野范围
     const viewX = minimapX + camera.x * scaleX;
     const viewY = minimapY + camera.y * scaleY;
-    const viewW = this.canvasWidth * scaleX;
-    const viewH = this.canvasHeight * scaleY;
+    const viewW = camera.getViewportWidth() * scaleX;
+    const viewH = camera.getViewportHeight() * scaleY;
     canvas.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     canvas.strokeRect(viewX, viewY, viewW, viewH);
 
@@ -325,35 +326,29 @@ export class GameRenderer {
   }
 
   private drawHUD(canvas: CanvasRenderingContext2D, player: Player, score: number, playTime: number): void {
-    // 左上角信息（增强背景）
-    canvas.fillStyle = 'rgba(0, 0, 0, 0.65)';
-    canvas.fillRect(5, 5, 260, 170);
-    canvas.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    canvas.lineWidth = 1.5;
-    canvas.strokeRect(5, 5, 260, 170);
+    // 左上角紧凑信息框，减少遮挡
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.48)';
+    canvas.fillRect(8, 8, 190, 95);
+    canvas.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    canvas.lineWidth = 1;
+    canvas.strokeRect(8, 8, 190, 95);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 44px sans-serif';
+    canvas.font = 'bold 28px sans-serif';
     canvas.textAlign = 'left';
     canvas.textBaseline = 'top';
-    canvas.fillText(`分数: ${score}`, 15, 10);
+    canvas.fillText(`分数 ${score}`, 16, 12);
 
     // 游戏时间
     const minutes = Math.floor(playTime / 60);
     const seconds = Math.floor(playTime % 60);
-    canvas.font = '36px sans-serif';
-    canvas.fillText(`时间: ${minutes}:${seconds.toString().padStart(2, '0')}`, 15, 60);
+    canvas.font = '22px sans-serif';
+    canvas.fillText(`${minutes}:${seconds.toString().padStart(2, '0')}`, 132, 16);
 
-    // 当前进化等级（添加阴影）
-    canvas.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    canvas.shadowBlur = 3;
-    canvas.shadowOffsetX = 1;
-    canvas.shadowOffsetY = 1;
+    // 当前形态
     canvas.fillStyle = player.getColor();
-    canvas.font = 'bold 36px sans-serif';
-    canvas.fillText(`${player.getName()}`, 15, 105);
-    canvas.shadowColor = 'transparent';
-    canvas.shadowBlur = 0;
+    canvas.font = 'bold 20px sans-serif';
+    canvas.fillText(`${player.getName()}`, 16, 47);
 
     // 成长进度条
     this.drawGrowthProgress(canvas, player, score);
@@ -368,14 +363,14 @@ export class GameRenderer {
     const total = Math.max(1, nextNeed - currentNeed);
     const progress = isMaxLevel ? 1 : Math.max(0, Math.min(1, gained / total));
 
-    const barX = 15;
-    const barY = 133;
-    const barW = 170;
-    const barH = 12;
+    const barX = 16;
+    const barY = 76;
+    const barW = 125;
+    const barH = 8;
 
     canvas.fillStyle = '#88AFC7';
-    canvas.font = '22px sans-serif';
-    canvas.fillText('成长进度', barX, 122);
+    canvas.font = '14px sans-serif';
+    canvas.fillText('成长', barX, 62);
 
     canvas.fillStyle = 'rgba(255,255,255,0.2)';
     canvas.fillRect(barX, barY, barW, barH);
@@ -391,11 +386,11 @@ export class GameRenderer {
     canvas.strokeRect(barX, barY, barW, barH);
 
     canvas.fillStyle = '#FFFFFF';
-    canvas.font = '20px sans-serif';
+    canvas.font = '14px sans-serif';
     if (isMaxLevel) {
-      canvas.fillText('已达神龙', barX + barW + 8, barY - 1);
+      canvas.fillText('神龙+', barX + barW + 7, barY - 3);
     } else {
-      canvas.fillText(`${Math.floor(progress * 100)}%`, barX + barW + 10, barY - 1);
+      canvas.fillText(`${Math.floor(progress * 100)}%`, barX + barW + 8, barY - 3);
     }
   }
 

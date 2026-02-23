@@ -49,7 +49,7 @@ export class GameCatalog {
     },
     {
       id: 'dragon',
-      name: '召唤神龙',
+      name: '球球大作战',
       description: '探索海洋，从小生物进化成神龙',
       icon: '🐉',
       color: '#FFD700',
@@ -65,6 +65,16 @@ export class GameCatalog {
       color: '#1976D2',
       gradient: ['#E3F2FD', '#BBDEFB'],
       page: 'pages/SudokuGame',
+      enabled: true
+    },
+    {
+      id: 'game2048',
+      name: '2048',
+      description: '滑动合并数字方块，挑战 2048',
+      icon: '🧩',
+      color: '#f59e0b',
+      gradient: ['#78350f', '#b45309'],
+      page: 'pages/Game2048',
       enabled: true
     },
     {

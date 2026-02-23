@@ -108,7 +108,7 @@ struct DragonGame {
           .width('100%')
           .padding({ left: 20, top: 50 })
 
-          Text('召唤神龙')
+          Text('球球大作战')
             .fontSize(52)
             .fontWeight(FontWeight.Bold)
             .fontColor('#FFD700')

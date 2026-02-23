@@ -99,9 +99,9 @@ export class GameConstants {
   static readonly CAMERA_FOLLOW_SPEED: number = 0.1;
   static readonly CAMERA_ZOOM_LERP_SPEED: number = 0.1;
   static readonly CAMERA_MIN_ZOOM: number = 1.0;
-  static readonly CAMERA_MAX_ZOOM: number = 3.0;
+  static readonly CAMERA_MAX_ZOOM: number = 3.8;
   static readonly CAMERA_BASE_RADIUS: number = GameConstants.EVOLUTION_SIZES[0] / 2;
-  static readonly CAMERA_ZOOM_RADIUS_FACTOR: number = 0.022;
+  static readonly CAMERA_ZOOM_RADIUS_FACTOR: number = 0.026;
 
   static getEvolutionLevelByScore(score: number): number {
     const clampedScore = Math.max(0, score);
