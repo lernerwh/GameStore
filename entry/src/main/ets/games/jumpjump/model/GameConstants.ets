@@ -26,8 +26,8 @@ export class GameConstants {
   static readonly PLATFORM_MIN_SIZE: number = 60;
   static readonly PLATFORM_MAX_SIZE: number = 100;
   static readonly PLATFORM_HEIGHT: number = 25;
-  static readonly PLATFORM_GAP_MIN: number = 98;
-  static readonly PLATFORM_GAP_MAX: number = 142;
+  static readonly PLATFORM_GAP_MIN: number = 122;
+  static readonly PLATFORM_GAP_MAX: number = 168;
   static readonly PLATFORM_Y: number = 480; // 方块基础Y位置（世界坐标基准）
 
   // 游戏规则

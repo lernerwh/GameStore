@@ -93,8 +93,8 @@ export class Platform {
 
     // 间隔按尺寸约束，避免忽远忽近；再限制在全局可控区间
     const nextSize = MathUtils.randomInt(GameConstants.PLATFORM_MIN_SIZE, GameConstants.PLATFORM_MAX_SIZE);
-    const sizeDrivenGap = Math.floor(nextSize * 1.45);
-    const jitter = MathUtils.randomInt(-12, 12);
+    const sizeDrivenGap = Math.floor(nextSize * 1.62);
+    const jitter = MathUtils.randomInt(-8, 10);
     const rawGap = sizeDrivenGap + jitter;
     const gap = Math.max(GameConstants.PLATFORM_GAP_MIN, Math.min(GameConstants.PLATFORM_GAP_MAX, rawGap));
 
