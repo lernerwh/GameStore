@@ -12,29 +12,29 @@ export class ImageManager {
 
   // 图片资源名称配置 - 对应 10 个进化等级
   private static readonly IMAGE_NAMES: Map<string, string> = new Map([
-    // 玩家各进化等级的图片 (0-9)，切换到 /Users/jiwei/Code/dragon_game_assets/icons 的素材
-    ['player_0', 'creature_tadpole.png'],
-    ['player_1', 'creature_fish_blue.png'],
-    ['player_2', 'creature_fish_koi.png'],
-    ['player_3', 'creature_frog.png'],
-    ['player_4', 'creature_turtle.png'],
-    ['player_5', 'creature_dragon_baby.png'],
-    ['player_6', 'creature_dragon_baby.png'],
-    ['player_7', 'creature_dragon_golden.png'],
-    ['player_8', 'creature_dragon_golden.png'],
-    ['player_9', 'creature_dragon_golden.png'],
+    // 玩家各进化等级的图片 (0-9)
+    ['player_0', 'creature_plankton.png'],
+    ['player_1', 'creature_tadpole.png'],
+    ['player_2', 'creature_shrimp.png'],
+    ['player_3', 'creature_small_fish.png'],
+    ['player_4', 'creature_medium_fish.png'],
+    ['player_5', 'creature_large_fish.png'],
+    ['player_6', 'creature_turtle.png'],
+    ['player_7', 'creature_dolphin.png'],
+    ['player_8', 'creature_shark.png'],
+    ['player_9', 'creature_shark.png'],
 
     // NPC 生物各等级的图片 (0-9)
-    ['creature_0', 'creature_tadpole.png'],
-    ['creature_1', 'creature_fish_blue.png'],
-    ['creature_2', 'creature_fish_koi.png'],
-    ['creature_3', 'creature_frog.png'],
-    ['creature_4', 'creature_turtle.png'],
-    ['creature_5', 'creature_dragon_baby.png'],
-    ['creature_6', 'creature_fish_koi.png'],
-    ['creature_7', 'creature_turtle.png'],
-    ['creature_8', 'creature_dragon_golden.png'],
-    ['creature_9', 'creature_dragon_golden.png'],
+    ['creature_0', 'creature_plankton.png'],
+    ['creature_1', 'creature_tadpole.png'],
+    ['creature_2', 'creature_shrimp.png'],
+    ['creature_3', 'creature_small_fish.png'],
+    ['creature_4', 'creature_medium_fish.png'],
+    ['creature_5', 'creature_large_fish.png'],
+    ['creature_6', 'creature_turtle.png'],
+    ['creature_7', 'creature_dolphin.png'],
+    ['creature_8', 'creature_shark.png'],
+    ['creature_9', 'creature_shark.png'],
   ]);
 
   // 图片缓存 - 使用 PixelMap，避免 ImageBitmap 兼容问题
