@@ -7,14 +7,13 @@ import {
   SummonPoint
 } from './SummonDragonEngine';
 
-@Observed
 export class SummonDragonViewModel {
   private engine: SummonDragonEngine = new SummonDragonEngine();
 
-  @Track gameState: GameState = GameState.IDLE;
-  @Track playTime: number = 0;
-  @Track playerLevel: number = 0;
-  @Track absorbedCount: number = 0;
+  gameState: GameState = GameState.IDLE;
+  playTime: number = 0;
+  playerLevel: number = 0;
+  absorbedCount: number = 0;
 
   private intervalId: number | null = null;
   private lastFrameTime: number = 0;

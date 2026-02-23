@@ -16,7 +16,7 @@ struct SummonDragonGame {
   @State showDeadOverlay: boolean = false;
   @State buttonScale: number = 1.0;
 
-  @State viewModel: SummonDragonViewModel = new SummonDragonViewModel();
+  private viewModel: SummonDragonViewModel = new SummonDragonViewModel();
   private renderer: SummonDragonRenderer = new SummonDragonRenderer(
     this.viewModel.canvasWidth,
     this.viewModel.canvasHeight
