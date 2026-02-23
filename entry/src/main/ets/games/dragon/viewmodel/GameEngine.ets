@@ -18,32 +18,64 @@ export interface Point {
 export class Camera {
   x: number = 0;
   y: number = 0;
+  zoom: number = 1;
   private targetX: number = 0;
   private targetY: number = 0;
+  private targetZoom: number = 1;
 
-  follow(targetX: number, targetY: number): void {
-    this.targetX = targetX - GameConstants.CANVAS_WIDTH / 2;
-    this.targetY = targetY - GameConstants.CANVAS_HEIGHT / 2;
+  follow(targetX: number, targetY: number, targetRadius: number): void {
+    this.targetZoom = this.calculateTargetZoom(targetRadius);
+    const viewportWidth = this.getViewportWidthByZoom(this.targetZoom);
+    const viewportHeight = this.getViewportHeightByZoom(this.targetZoom);
+    this.targetX = targetX - viewportWidth / 2;
+    this.targetY = targetY - viewportHeight / 2;
 
     // 限制摄像机在世界范围内
-    this.targetX = Math.max(0, Math.min(this.targetX, GameConstants.WORLD_WIDTH - GameConstants.CANVAS_WIDTH));
-    this.targetY = Math.max(0, Math.min(this.targetY, GameConstants.WORLD_HEIGHT - GameConstants.CANVAS_HEIGHT));
+    this.targetX = Math.max(0, Math.min(this.targetX, GameConstants.WORLD_WIDTH - viewportWidth));
+    this.targetY = Math.max(0, Math.min(this.targetY, GameConstants.WORLD_HEIGHT - viewportHeight));
   }
 
   update(): void {
     // 平滑跟随
     this.x += (this.targetX - this.x) * GameConstants.CAMERA_FOLLOW_SPEED;
     this.y += (this.targetY - this.y) * GameConstants.CAMERA_FOLLOW_SPEED;
+    this.zoom += (this.targetZoom - this.zoom) * GameConstants.CAMERA_ZOOM_LERP_SPEED;
   }
 
   worldToScreen(worldX: number, worldY: number): Point {
-    const result: Point = { x: worldX - this.x, y: worldY - this.y };
+    const result: Point = { x: (worldX - this.x) / this.zoom, y: (worldY - this.y) / this.zoom };
     return result;
   }
 
   screenToWorld(screenX: number, screenY: number): Point {
-    const result: Point = { x: screenX + this.x, y: screenY + this.y };
+    const result: Point = { x: screenX * this.zoom + this.x, y: screenY * this.zoom + this.y };
     return result;
+  }
+
+  worldLengthToScreen(worldLength: number): number {
+    return worldLength / this.zoom;
+  }
+
+  getViewportWidth(): number {
+    return this.getViewportWidthByZoom(this.zoom);
+  }
+
+  getViewportHeight(): number {
+    return this.getViewportHeightByZoom(this.zoom);
+  }
+
+  private calculateTargetZoom(targetRadius: number): number {
+    const radiusDelta = Math.max(0, targetRadius - GameConstants.CAMERA_BASE_RADIUS);
+    const zoom = GameConstants.CAMERA_MIN_ZOOM + radiusDelta * GameConstants.CAMERA_ZOOM_RADIUS_FACTOR;
+    return Math.max(GameConstants.CAMERA_MIN_ZOOM, Math.min(GameConstants.CAMERA_MAX_ZOOM, zoom));
+  }
+
+  private getViewportWidthByZoom(zoom: number): number {
+    return GameConstants.CANVAS_WIDTH * zoom;
+  }
+
+  private getViewportHeightByZoom(zoom: number): number {
+    return GameConstants.CANVAS_HEIGHT * zoom;
   }
 }
 
@@ -154,7 +186,7 @@ export class GameEngine {
 
     this.playTime += deltaTime;
     this.player.update(deltaTime);
-    this.camera.follow(this.player.x, this.player.y);
+    this.camera.follow(this.player.x, this.player.y, this.player.getRadius());
     this.camera.update();
 
     // 更新生物
@@ -212,11 +244,13 @@ export class GameEngine {
       const creatureRadius = creature.getRadius();
 
       if (distance < playerRadius + creatureRadius) {
-        if (playerRadius >= creatureRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
+        if (playerRadius >= creatureRadius * GameConstants.MIN_EAT_SIZE_RATIO &&
+          this.canConsumeByOverlap(playerRadius, creatureRadius, distance)) {
           // 吃掉生物
           this.score += this.getEatGainScore(creature.score, GameConstants.PLAYER_EAT_SCORE_RATIO);
           this.creatures.splice(i, 1);
-        } else if (creatureRadius >= playerRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
+        } else if (creatureRadius >= playerRadius * GameConstants.MIN_EAT_SIZE_RATIO &&
+          this.canConsumeByOverlap(creatureRadius, playerRadius, distance)) {
           // 被吃掉，游戏结束
           this.gameState = GameState.GAME_OVER;
           return;
@@ -241,11 +275,13 @@ export class GameEngine {
         const bRadius = b.getRadius();
 
         if (distance < aRadius + bRadius) {
-          if (aRadius >= bRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
+          if (aRadius >= bRadius * GameConstants.MIN_EAT_SIZE_RATIO &&
+            this.canConsumeByOverlap(aRadius, bRadius, distance)) {
             a.addScore(this.getEatGainScore(b.score, GameConstants.NPC_EAT_SCORE_RATIO));
             this.creatures.splice(j, 1);
             continue;
-          } else if (bRadius >= aRadius * GameConstants.MIN_EAT_SIZE_RATIO) {
+          } else if (bRadius >= aRadius * GameConstants.MIN_EAT_SIZE_RATIO &&
+            this.canConsumeByOverlap(bRadius, aRadius, distance)) {
             b.addScore(this.getEatGainScore(a.score, GameConstants.NPC_EAT_SCORE_RATIO));
             this.creatures.splice(i, 1);
             iRemoved = true;
@@ -269,7 +305,7 @@ export class GameEngine {
       const pdx = this.player.x - pellet.x;
       const pdy = this.player.y - pellet.y;
       const playerDistance = Math.sqrt(pdx * pdx + pdy * pdy);
-      if (playerDistance < this.player.getRadius() + pellet.radius) {
+      if (this.canConsumeByOverlap(this.player.getRadius(), pellet.radius, playerDistance)) {
         this.score += pellet.scoreValue;
         this.pellets.splice(i, 1);
         continue;
@@ -279,7 +315,7 @@ export class GameEngine {
         const dx = creature.x - pellet.x;
         const dy = creature.y - pellet.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < creature.getRadius() + pellet.radius) {
+        if (this.canConsumeByOverlap(creature.getRadius(), pellet.radius, distance)) {
           creature.addScore(pellet.scoreValue);
           eaten = true;
           break;
@@ -295,6 +331,33 @@ export class GameEngine {
   private getEatGainScore(targetScore: number, ratio: number): number {
     const gain = Math.floor(targetScore * ratio);
     return Math.max(1, gain);
+  }
+
+  private canConsumeByOverlap(predatorRadius: number, preyRadius: number, distance: number): boolean {
+    if (distance >= predatorRadius + preyRadius) {
+      return false;
+    }
+    const overlapArea = this.calculateCircleOverlapArea(predatorRadius, preyRadius, distance);
+    const preyArea = Math.PI * preyRadius * preyRadius;
+    return overlapArea >= preyArea * 0.5;
+  }
+
+  private calculateCircleOverlapArea(r1: number, r2: number, d: number): number {
+    if (d >= r1 + r2) {
+      return 0;
+    }
+    if (d <= Math.abs(r1 - r2)) {
+      const minR = Math.min(r1, r2);
+      return Math.PI * minR * minR;
+    }
+    const alpha = Math.acos((d * d + r1 * r1 - r2 * r2) / (2 * d * r1));
+    const beta = Math.acos((d * d + r2 * r2 - r1 * r1) / (2 * d * r2));
+    const area1 = r1 * r1 * alpha;
+    const area2 = r2 * r2 * beta;
+    const area3 = 0.5 * Math.sqrt(
+      Math.max(0, (-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2))
+    );
+    return area1 + area2 - area3;
   }
 
   reset(): void {
