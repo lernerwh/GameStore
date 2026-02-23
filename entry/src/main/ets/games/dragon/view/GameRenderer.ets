@@ -231,7 +231,6 @@ export class GameRenderer {
   }
 
   private drawPellets(canvas: CanvasRenderingContext2D, pellets: Pellet[], camera: Camera): void {
-    canvas.fillStyle = '#FFD54F';
     for (const pellet of pellets) {
       const screenPos: Point = camera.worldToScreen(pellet.x, pellet.y);
       const radius = camera.worldLengthToScreen(pellet.radius);
@@ -239,6 +238,7 @@ export class GameRenderer {
         screenPos.y + radius < 0 || screenPos.y - radius > this.canvasHeight) {
         continue;
       }
+      canvas.fillStyle = pellet.color;
       canvas.beginPath();
       canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
       canvas.fill();
@@ -306,11 +306,11 @@ export class GameRenderer {
       canvas.fill();
     }
 
-    // 绘制小豆豆（亮黄色）
-    canvas.fillStyle = '#FFD54F';
+    // 绘制小豆豆（随机色）
     for (const pellet of pellets) {
       const dotX = minimapX + pellet.x * scaleX;
       const dotY = minimapY + pellet.y * scaleY;
+      canvas.fillStyle = pellet.color;
       canvas.beginPath();
       canvas.arc(dotX, dotY, 1, 0, Math.PI * 2);
       canvas.fill();

@@ -24,8 +24,16 @@ export class GameConstants {
   static readonly NPC_EAT_SCORE_RATIO: number = 0.55;
   static readonly PELLET_SCORE: number = 6;
   static readonly PELLET_RADIUS: number = 4;
-  static readonly PELLET_COUNT: number = 220;
-  static readonly PELLET_SPAWN_INTERVAL: number = 700;
+  static readonly PELLET_COUNT: number = 320;
+  static readonly PELLET_SPAWN_INTERVAL: number = 450;
+  static readonly PELLET_COLORS: string[] = [
+    '#FFD54F', // 金黄
+    '#FF8A65', // 橙红
+    '#4FC3F7', // 天蓝
+    '#81C784', // 青绿
+    '#BA68C8', // 紫色
+    '#F06292', // 粉色
+  ];
 
   // 颜色定义
   static readonly COLOR_BACKGROUND: string = '#0a1628';
