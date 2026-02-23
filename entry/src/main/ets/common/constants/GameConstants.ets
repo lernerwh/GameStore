@@ -1,10 +1,10 @@
 /**
- * 召唤神龙 游戏常量定义
+ * 球球大作战 游戏常量定义
  */
 export class GameConstants {
   // 画布尺寸
   static readonly CANVAS_WIDTH: number = 360;
-  static readonly CANVAS_HEIGHT: number = 760;
+  static readonly CANVAS_HEIGHT: number = 640;
 
   // 世界尺寸
   static readonly WORLD_WIDTH: number = 2000;
@@ -16,7 +16,7 @@ export class GameConstants {
 
   // 游戏规则
   static readonly SCORE_PER_HIT: number = 1;
-  static readonly PLAYER_INITIAL_SCORE: number = 55;
+  static readonly PLAYER_INITIAL_SCORE: number = 18;
   static readonly WIN_SCORE: number = 2000;
   static readonly POST_MAX_LEVEL_RADIUS_PER_SCORE: number = 0.01;
   static readonly MIN_EAT_SIZE_RATIO: number = 1.05;
@@ -43,58 +43,58 @@ export class GameConstants {
 
   // 进化等级名称
   static readonly EVOLUTION_NAMES: string[] = [
-    '蝌蚪',
-    '小虾',
-    '海虾',
-    '小鱼',
-    '中鱼',
-    '大鱼',
-    '海龟',
-    '海豚',
-    '鲨鱼',
-    '神龙'
+    '微球',
+    '小球',
+    '速球',
+    '跃球',
+    '战球',
+    '巨球',
+    '霸球',
+    '领主球',
+    '星核球',
+    '球王'
   ];
 
   // 进化等级颜色
   static readonly EVOLUTION_COLORS: string[] = [
-    '#0F172A', // 蝌蚪
-    '#D97706', // 小虾
-    '#F97316', // 海虾
-    '#38BDF8', // 小鱼
-    '#60A5FA', // 中鱼
-    '#A78BFA', // 大鱼
-    '#86EFAC', // 海龟
-    '#34D399', // 海豚
-    '#93C5FD', // 鲨鱼
-    '#FACC15'  // 神龙
+    '#A7F3D0', // 微球
+    '#6EE7B7', // 小球
+    '#34D399', // 速球
+    '#22D3EE', // 跃球
+    '#38BDF8', // 战球
+    '#60A5FA', // 巨球
+    '#A78BFA', // 霸球
+    '#F472B6', // 领主球
+    '#F97316', // 星核球
+    '#FACC15'  // 球王
   ];
 
   // 进化等级大小
   static readonly EVOLUTION_SIZES: number[] = [
-    12,  // 蝌蚪
-    16,  // 小虾
-    22,  // 海虾
-    30,  // 小鱼
-    42,  // 中鱼
-    58,  // 大鱼
-    80,  // 海龟
-    108, // 海豚
-    145, // 鲨鱼
-    185  // 神龙
+    15,  // 微球
+    20,  // 小虾
+    28,  // 小鱼
+    38,  // 中鱼
+    50,  // 大鱼
+    65,  // 海龟
+    85,  // 海豚
+    110, // 鲨鱼
+    140, // 虎鲸
+    180  // 球王
   ];
 
   // 进化所需分数
   static readonly EVOLUTION_SCORES: number[] = [
-    0,    // 蝌蚪
-    20,   // 小虾
-    50,   // 海虾
-    100,  // 小鱼
-    180,  // 中鱼
-    300,  // 大鱼
-    450,  // 海龟
-    700,  // 海豚
-    1100, // 鲨鱼
-    1600  // 神龙
+    0,    // 微球
+    30,   // 小虾
+    80,   // 小鱼
+    150,  // 中鱼
+    250,  // 大鱼
+    400,  // 海龟
+    600,  // 海豚
+    900,  // 鲨鱼
+    1300, // 虎鲸
+    2000  // 球王
   ];
 
   // 生物数量配置
@@ -110,10 +110,14 @@ export class GameConstants {
   // 摄像机配置
   static readonly CAMERA_FOLLOW_SPEED: number = 0.1;
   static readonly CAMERA_ZOOM_LERP_SPEED: number = 0.1;
-  static readonly CAMERA_MIN_ZOOM: number = 0.95;
-  static readonly CAMERA_MAX_ZOOM: number = 1.9;
+  static readonly CAMERA_MIN_ZOOM: number = 1.0;
+  // 最大时可在一屏看到整张地图
+  static readonly CAMERA_MAX_ZOOM: number = Math.max(
+    GameConstants.WORLD_WIDTH / GameConstants.CANVAS_WIDTH,
+    GameConstants.WORLD_HEIGHT / GameConstants.CANVAS_HEIGHT
+  );
   static readonly CAMERA_BASE_RADIUS: number = GameConstants.EVOLUTION_SIZES[0] / 2;
-  static readonly CAMERA_ZOOM_RADIUS_FACTOR: number = 0.018;
+  static readonly CAMERA_ZOOM_RADIUS_FACTOR: number = 0.026;
 
   static getEvolutionLevelByScore(score: number): number {
     const clampedScore = Math.max(0, score);

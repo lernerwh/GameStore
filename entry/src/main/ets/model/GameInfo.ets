@@ -49,12 +49,22 @@ export class GameCatalog {
     },
     {
       id: 'dragon',
+      name: '球球大作战',
+      description: '吞噬小球持续成长，躲避强敌成为球场霸主',
+      icon: '⚪',
+      color: '#22D3EE',
+      gradient: ['#102a43', '#0b1f33'],
+      page: 'pages/DragonGame',
+      enabled: true
+    },
+    {
+      id: 'summondragon',
       name: '召唤神龙',
       description: '从小蝌蚪一路进化，吞噬成长召唤神龙',
       icon: '🐉',
       color: '#FFD700',
       gradient: ['#8ec6ef', '#87bee6'],
-      page: 'pages/DragonGame',
+      page: 'pages/SummonDragonGame',
       enabled: true
     },
     {

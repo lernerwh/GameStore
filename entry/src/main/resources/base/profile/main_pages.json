@@ -6,6 +6,8 @@
     "pages/AnimalRestaurantGame",
     "pages/FlappyBirdGame",
     "pages/JumpJumpGame",
-    "pages/SudokuGame"
+    "pages/SudokuGame",
+    "pages/Game2048",
+    "pages/SummonDragonGame"
   ]
 }
