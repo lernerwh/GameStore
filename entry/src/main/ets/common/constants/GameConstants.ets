@@ -97,6 +97,11 @@ export class GameConstants {
 
   // 摄像机配置
   static readonly CAMERA_FOLLOW_SPEED: number = 0.1;
+  static readonly CAMERA_ZOOM_LERP_SPEED: number = 0.1;
+  static readonly CAMERA_MIN_ZOOM: number = 1.0;
+  static readonly CAMERA_MAX_ZOOM: number = 3.0;
+  static readonly CAMERA_BASE_RADIUS: number = GameConstants.EVOLUTION_SIZES[0] / 2;
+  static readonly CAMERA_ZOOM_RADIUS_FACTOR: number = 0.022;
 
   static getEvolutionLevelByScore(score: number): number {
     const clampedScore = Math.max(0, score);
@@ -127,5 +132,14 @@ export class GameConstants {
       ? GameConstants.WIN_SCORE
       : GameConstants.EVOLUTION_SCORES[clampedLevel + 1] - 1;
     return min + Math.floor(Math.random() * Math.max(1, max - min + 1));
+  }
+
+  static getCameraZoomByScore(score: number): number {
+    const startScore = GameConstants.PLAYER_INITIAL_SCORE;
+    const endScore = GameConstants.WIN_SCORE;
+    const progress = Math.max(0, Math.min(1, (score - startScore) / Math.max(1, endScore - startScore)));
+    const zoom = GameConstants.CAMERA_MIN_ZOOM +
+      (GameConstants.CAMERA_MAX_ZOOM - GameConstants.CAMERA_MIN_ZOOM) * progress;
+    return Math.max(GameConstants.CAMERA_MIN_ZOOM, Math.min(GameConstants.CAMERA_MAX_ZOOM, zoom));
   }
 }
