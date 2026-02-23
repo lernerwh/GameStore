@@ -1,9 +1,10 @@
-import { Player } from '../../../model/Player';
-import { Creature } from '../../../model/Creature';
-import { Pellet } from '../../../model/Pellet';
+import {
+  SummonCamera,
+  SummonNpc,
+  SummonPoint,
+  SummonRenderCompanion
+} from '../viewmodel/SummonDragonEngine';
 import { GameState } from '../../../model/GameState';
-import { GameConstants } from '../../../common/constants/GameConstants';
-import { Camera, Point } from '../../dragon/viewmodel/GameEngine';
 import { ImageManager } from '../../../common/utils/ImageManager';
 
 interface Cloud {
@@ -15,177 +16,146 @@ interface Cloud {
 }
 
 export class SummonDragonRenderer {
-  private canvasWidth: number = GameConstants.CANVAS_WIDTH;
-  private canvasHeight: number = GameConstants.CANVAS_HEIGHT;
+  private canvasWidth: number;
+  private canvasHeight: number;
   private animTime: number = 0;
   private clouds: Cloud[] = [];
 
-  constructor() {
+  constructor(canvasWidth: number, canvasHeight: number) {
+    this.canvasWidth = canvasWidth;
+    this.canvasHeight = canvasHeight;
     this.initClouds();
   }
 
   render(
     canvas: CanvasRenderingContext2D,
-    player: Player,
-    creatures: Creature[],
-    pellets: Pellet[],
     gameState: GameState,
-    camera: Camera
+    playerPos: SummonPoint,
+    playerLevel: number,
+    playerRadius: number,
+    npcs: SummonNpc[],
+    companions: SummonRenderCompanion[],
+    camera: SummonCamera
   ): void {
     this.animTime = Date.now();
-    this.clearCanvas(canvas);
+    this.clear(canvas);
     this.drawBackground(canvas);
 
     if (gameState === GameState.PLAYING || gameState === GameState.GAME_OVER) {
       this.drawClouds(canvas);
-      this.drawPellets(canvas, pellets, camera);
-      this.drawCreatures(canvas, creatures, camera);
-      this.drawPlayer(canvas, player, camera);
-    }
-
-    if (gameState === GameState.IDLE) {
-      this.drawIdlePrompt(canvas);
+      this.drawNpcs(canvas, npcs, camera);
+      this.drawCompanions(canvas, companions, camera);
+      this.drawPlayer(canvas, playerPos, playerLevel, playerRadius, camera);
     }
   }
 
-  private clearCanvas(canvas: CanvasRenderingContext2D): void {
+  private clear(canvas: CanvasRenderingContext2D): void {
     canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-  }
-
-  private initClouds(): void {
-    this.clouds = [];
-    for (let i = 0; i < 8; i++) {
-      this.clouds.push({
-        x: Math.random() * this.canvasWidth,
-        y: Math.random() * this.canvasHeight,
-        r: 24 + Math.random() * 42,
-        speed: 0.08 + Math.random() * 0.2,
-        alpha: 0.15 + Math.random() * 0.2
-      });
-    }
   }
 
   private drawBackground(canvas: CanvasRenderingContext2D): void {
     const gradient = canvas.createLinearGradient(0, 0, 0, this.canvasHeight);
     gradient.addColorStop(0, '#8ec6ef');
-    gradient.addColorStop(0.6, '#8cc3eb');
+    gradient.addColorStop(0.62, '#8cc3eb');
     gradient.addColorStop(1, '#87bee6');
     canvas.fillStyle = gradient;
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
   }
 
+  private initClouds(): void {
+    this.clouds = [];
+    for (let i = 0; i < 9; i++) {
+      this.clouds.push({
+        x: Math.random() * this.canvasWidth,
+        y: Math.random() * this.canvasHeight,
+        r: 22 + Math.random() * 44,
+        speed: 0.07 + Math.random() * 0.2,
+        alpha: 0.12 + Math.random() * 0.2
+      });
+    }
+  }
+
   private drawClouds(canvas: CanvasRenderingContext2D): void {
-    for (const cloud of this.clouds) {
-      cloud.x += cloud.speed;
-      if (cloud.x - cloud.r > this.canvasWidth + 40) {
-        cloud.x = -cloud.r - 40;
-        cloud.y = Math.random() * this.canvasHeight;
+    for (const c of this.clouds) {
+      c.x += c.speed;
+      if (c.x - c.r > this.canvasWidth + 30) {
+        c.x = -c.r - 30;
+        c.y = Math.random() * this.canvasHeight;
       }
 
-      const gradient = canvas.createRadialGradient(
-        cloud.x,
-        cloud.y,
-        cloud.r * 0.2,
-        cloud.x,
-        cloud.y,
-        cloud.r
-      );
-      gradient.addColorStop(0, `rgba(255,255,255,${cloud.alpha})`);
-      gradient.addColorStop(1, 'rgba(255,255,255,0)');
+      const g = canvas.createRadialGradient(c.x, c.y, c.r * 0.2, c.x, c.y, c.r);
+      g.addColorStop(0, `rgba(255,255,255,${c.alpha})`);
+      g.addColorStop(1, 'rgba(255,255,255,0)');
 
-      canvas.fillStyle = gradient;
+      canvas.fillStyle = g;
       canvas.beginPath();
-      canvas.arc(cloud.x, cloud.y, cloud.r, 0, Math.PI * 2);
+      canvas.arc(c.x, c.y, c.r, 0, Math.PI * 2);
       canvas.fill();
     }
   }
 
-  private drawPlayer(canvas: CanvasRenderingContext2D, player: Player, camera: Camera): void {
-    const screenPos: Point = camera.worldToScreen(player.x, player.y);
-    const radius = camera.worldLengthToScreen(player.getRadius());
-    const imageManager = ImageManager.getInstance();
-    const imageKey = imageManager.getPlayerImageKey(player.evolutionLevel);
-    const cachedImage = imageManager.getCachedImage(imageKey);
+  private drawPlayer(
+    canvas: CanvasRenderingContext2D,
+    playerPos: SummonPoint,
+    playerLevel: number,
+    playerRadius: number,
+    camera: SummonCamera
+  ): void {
+    const s = camera.worldToScreen(playerPos.x, playerPos.y);
+    this.drawActorByLevel(canvas, s.x, s.y, playerLevel, playerRadius * 2.25, true);
+  }
 
-    if (cachedImage) {
-      const imageSize = radius * 4.6;
-      canvas.drawImage(
-        cachedImage,
-        screenPos.x - imageSize / 2,
-        screenPos.y - imageSize / 2,
-        imageSize,
-        imageSize
-      );
+  private drawNpcs(canvas: CanvasRenderingContext2D, npcs: SummonNpc[], camera: SummonCamera): void {
+    for (let i = 0; i < npcs.length; i++) {
+      const n = npcs[i];
+      const s = camera.worldToScreen(n.x, n.y);
+      if (s.x < -60 || s.x > this.canvasWidth + 60 || s.y < -60 || s.y > this.canvasHeight + 60) {
+        continue;
+      }
+      const size = this.levelToSize(n.level);
+      this.drawActorByLevel(canvas, s.x, s.y, n.level, size, false);
+    }
+  }
+
+  private drawCompanions(canvas: CanvasRenderingContext2D, companions: SummonRenderCompanion[], camera: SummonCamera): void {
+    for (let i = 0; i < companions.length; i++) {
+      const c = companions[i];
+      const s = camera.worldToScreen(c.x, c.y);
+      if (s.x < -60 || s.x > this.canvasWidth + 60 || s.y < -60 || s.y > this.canvasHeight + 60) {
+        continue;
+      }
+      const size = this.levelToSize(c.level) * 0.92;
+      this.drawActorByLevel(canvas, s.x, s.y, c.level, size, false);
+    }
+  }
+
+  private drawActorByLevel(
+    canvas: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    level: number,
+    size: number,
+    isPlayer: boolean
+  ): void {
+    const imageManager = ImageManager.getInstance();
+    const imageKey = isPlayer ? imageManager.getPlayerImageKey(level) : imageManager.getCreatureImageKey(level);
+    const image = imageManager.getCachedImage(imageKey);
+
+    if (image) {
+      canvas.drawImage(image, x - size / 2, y - size / 2, size, size);
       return;
     }
 
-    canvas.fillStyle = '#f29f56';
+    const hue = (level * 36) % 360;
+    canvas.fillStyle = `hsl(${hue}, 70%, ${isPlayer ? 62 : 52}%)`;
     canvas.beginPath();
-    canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
+    canvas.arc(x, y, size * 0.32, 0, Math.PI * 2);
     canvas.fill();
   }
 
-  private drawCreatures(canvas: CanvasRenderingContext2D, creatures: Creature[], camera: Camera): void {
-    const imageManager = ImageManager.getInstance();
-
-    for (const creature of creatures) {
-      const screenPos: Point = camera.worldToScreen(creature.x, creature.y);
-      const radius = camera.worldLengthToScreen(creature.getRadius());
-
-      if (screenPos.x + radius < -20 || screenPos.x - radius > this.canvasWidth + 20 ||
-        screenPos.y + radius < -20 || screenPos.y - radius > this.canvasHeight + 20) {
-        continue;
-      }
-
-      const imageKey = imageManager.getCreatureImageKey(creature.evolutionLevel);
-      const cachedImage = imageManager.getCachedImage(imageKey);
-
-      if (cachedImage) {
-        const imageSize = radius * 4.6;
-        canvas.drawImage(
-          cachedImage,
-          screenPos.x - imageSize / 2,
-          screenPos.y - imageSize / 2,
-          imageSize,
-          imageSize
-        );
-      } else {
-        canvas.fillStyle = creature.getColor();
-        canvas.beginPath();
-        canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
-        canvas.fill();
-      }
-    }
-  }
-
-  private drawPellets(canvas: CanvasRenderingContext2D, pellets: Pellet[], camera: Camera): void {
-    for (const pellet of pellets) {
-      const screenPos: Point = camera.worldToScreen(pellet.x, pellet.y);
-      const radius = Math.max(1.5, camera.worldLengthToScreen(pellet.radius));
-
-      if (screenPos.x + radius < -4 || screenPos.x - radius > this.canvasWidth + 4 ||
-        screenPos.y + radius < -4 || screenPos.y - radius > this.canvasHeight + 4) {
-        continue;
-      }
-
-      const twinkle = 0.6 + (Math.sin((this.animTime + pellet.x + pellet.y) / 220) + 1) * 0.2;
-      canvas.fillStyle = `rgba(255,255,255,${twinkle})`;
-      canvas.beginPath();
-      canvas.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
-      canvas.fill();
-
-      canvas.fillStyle = `rgba(255,192,250,${twinkle * 0.35})`;
-      canvas.beginPath();
-      canvas.arc(screenPos.x + 1, screenPos.y - 1, radius * 1.8, 0, Math.PI * 2);
-      canvas.fill();
-    }
-  }
-
-  private drawIdlePrompt(canvas: CanvasRenderingContext2D): void {
-    canvas.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    canvas.font = 'bold 20px sans-serif';
-    canvas.textAlign = 'center';
-    canvas.textBaseline = 'middle';
-    canvas.fillText('点击开始游戏', this.canvasWidth / 2, this.canvasHeight / 2);
+  private levelToSize(level: number): number {
+    const base = [24, 30, 38, 50, 62, 78, 96, 118, 146, 180];
+    const idx = Math.max(0, Math.min(base.length - 1, level));
+    return base[idx];
   }
 }

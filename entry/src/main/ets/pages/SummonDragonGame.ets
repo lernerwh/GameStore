@@ -1,7 +1,6 @@
-import { GameViewModel } from '../games/dragon/viewmodel/GameViewModel';
+import { SummonDragonViewModel } from '../games/summondragon/viewmodel/SummonDragonViewModel';
 import { SummonDragonRenderer } from '../games/summondragon/view/SummonDragonRenderer';
 import { GameState } from '../model/GameState';
-import { GameConstants } from '../common/constants/GameConstants';
 import { ImageManager } from '../common/utils/ImageManager';
 import { common } from '@kit.AbilityKit';
 import { router } from '@kit.ArkUI';
@@ -14,10 +13,14 @@ interface PageParams {
 @Component
 struct SummonDragonGame {
   @State isPlaying: boolean = false;
-  @State viewModel: GameViewModel = new GameViewModel();
-  @State buttonScale: number = 1.0;
   @State showDeadOverlay: boolean = false;
-  private renderer: SummonDragonRenderer = new SummonDragonRenderer();
+  @State buttonScale: number = 1.0;
+
+  @State viewModel: SummonDragonViewModel = new SummonDragonViewModel();
+  private renderer: SummonDragonRenderer = new SummonDragonRenderer(
+    this.viewModel.canvasWidth,
+    this.viewModel.canvasHeight
+  );
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
@@ -140,8 +143,8 @@ struct SummonDragonGame {
     Stack() {
       Column() {
         Canvas(this.canvasContext)
-          .width(GameConstants.CANVAS_WIDTH)
-          .height(GameConstants.CANVAS_HEIGHT)
+          .width(this.viewModel.canvasWidth)
+          .height(this.viewModel.canvasHeight)
           .onReady(() => { this.onCanvasReady(); })
           .onTouch((event) => { this.onCanvasTouch(event); })
       }
@@ -186,7 +189,7 @@ struct SummonDragonGame {
           .fontColor('#FFFFFF')
           .textShadow({ radius: 3, color: '#2f4668', offsetX: 0, offsetY: 1 })
       }
-      .position({ x: GameConstants.CANVAS_WIDTH - 78, y: 250 })
+      .position({ x: this.viewModel.canvasWidth - 78, y: 250 })
 
       if (this.showDeadOverlay) {
         this.DeadOverlay();
@@ -244,8 +247,8 @@ struct SummonDragonGame {
         })
       }
     }
-    .width(GameConstants.CANVAS_WIDTH)
-    .height(GameConstants.CANVAS_HEIGHT)
+    .width(this.viewModel.canvasWidth)
+    .height(this.viewModel.canvasHeight)
     .justifyContent(FlexAlign.Start)
     .backgroundColor('rgba(16, 30, 45, 0.42)')
   }
@@ -253,13 +256,15 @@ struct SummonDragonGame {
   private startGame(): void {
     this.isPlaying = true;
     this.showDeadOverlay = false;
-    this.viewModel = new GameViewModel();
+    this.viewModel = new SummonDragonViewModel();
+    this.renderer = new SummonDragonRenderer(this.viewModel.canvasWidth, this.viewModel.canvasHeight);
     this.viewModel.startGame();
   }
 
   private revive(): void {
     this.showDeadOverlay = false;
-    this.viewModel = new GameViewModel();
+    this.viewModel = new SummonDragonViewModel();
+    this.renderer = new SummonDragonRenderer(this.viewModel.canvasWidth, this.viewModel.canvasHeight);
     this.viewModel.startGame();
   }
 
@@ -267,7 +272,8 @@ struct SummonDragonGame {
     this.cleanup();
     this.isPlaying = false;
     this.showDeadOverlay = false;
-    this.viewModel = new GameViewModel();
+    this.viewModel = new SummonDragonViewModel();
+    this.renderer = new SummonDragonRenderer(this.viewModel.canvasWidth, this.viewModel.canvasHeight);
   }
 
   private onCanvasReady(): void {
@@ -292,18 +298,18 @@ struct SummonDragonGame {
 
     if (event.type === TouchType.Move && event.touches.length > 0 && this.joystickActive) {
       const touch = event.touches[0];
-      const deltaX = touch.x - this.joystickCenterX;
-      const deltaY = touch.y - this.joystickCenterY;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const clampedDistance = Math.min(distance, this.joystickMaxDistance);
-      const ratio = distance > 0 ? clampedDistance / distance : 0;
-      const handleX = this.joystickCenterX + deltaX * ratio;
-      const handleY = this.joystickCenterY + deltaY * ratio;
+      const dx = touch.x - this.joystickCenterX;
+      const dy = touch.y - this.joystickCenterY;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      const clamped = Math.min(d, this.joystickMaxDistance);
+      const ratio = d > 0 ? clamped / d : 0;
+      const handleX = this.joystickCenterX + dx * ratio;
+      const handleY = this.joystickCenterY + dy * ratio;
 
       this.viewModel.setPlayerDirectionInput(
         handleX - this.joystickCenterX,
         handleY - this.joystickCenterY,
-        clampedDistance / this.joystickMaxDistance
+        clamped / this.joystickMaxDistance
       );
       return;
     }
@@ -314,11 +320,13 @@ struct SummonDragonGame {
   private render(): void {
     this.renderer.render(
       this.canvasContext,
-      this.viewModel.player,
-      this.viewModel.creatures,
-      this.viewModel.pellets,
       this.viewModel.gameState,
-      this.viewModel.getCamera()
+      this.viewModel.playerPos,
+      this.viewModel.playerLevel,
+      this.viewModel.playerRadius,
+      this.viewModel.npcs,
+      this.viewModel.companions,
+      this.viewModel.camera
     );
 
     if (this.viewModel.gameState === GameState.GAME_OVER) {
