@@ -110,6 +110,11 @@ struct JumpJumpGame {
             .fontColor('#666666')
             .margin({ bottom: 40 })
 
+          Text('技巧：长按更远，轻按更稳')
+            .fontSize(14)
+            .fontColor('#6d4c41')
+            .margin({ bottom: 10 })
+
           Row({ space: 10 }) {
             Text('按压蓄力')
               .fontSize(12)
