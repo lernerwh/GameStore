@@ -16,6 +16,9 @@ export class Player {
   worldX: number;        // 世界坐标X
   worldY: number;        // 世界坐标Y
   worldZ: number;        // 世界坐标Z（跳跃高度）
+  prevWorldX: number;    // 上一帧世界坐标X
+  prevWorldY: number;    // 上一帧世界坐标Y
+  prevWorldZ: number;    // 上一帧世界坐标Z
 
   velocityX: number;     // X方向速度（世界坐标）
   velocityY: number;     // Y方向速度（世界坐标）
@@ -35,6 +38,9 @@ export class Player {
     this.worldX = 0;
     this.worldY = 0;
     this.worldZ = 0;
+    this.prevWorldX = 0;
+    this.prevWorldY = 0;
+    this.prevWorldZ = 0;
     this.velocityX = 0;
     this.velocityY = 0;
     this.velocityZ = 0;
@@ -46,6 +52,9 @@ export class Player {
     this.worldX = startWorldX;
     this.worldY = startWorldY;
     this.worldZ = 0;
+    this.prevWorldX = this.worldX;
+    this.prevWorldY = this.worldY;
+    this.prevWorldZ = this.worldZ;
     this.height = this.baseHeight;
     this.velocityX = 0;
     this.velocityY = 0;
@@ -89,6 +98,10 @@ export class Player {
    */
   update(deltaTime: number): void {
     if (!this.isOnGround) {
+      this.prevWorldX = this.worldX;
+      this.prevWorldY = this.worldY;
+      this.prevWorldZ = this.worldZ;
+
       // 应用重力到Z轴
       this.velocityZ += GameConstants.GRAVITY * deltaTime;
 

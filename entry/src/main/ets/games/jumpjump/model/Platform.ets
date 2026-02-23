@@ -61,15 +61,11 @@ export class Platform {
    * @param pointWorldY 点的世界Y坐标
    */
   containsPoint(pointWorldX: number, pointWorldY: number): boolean {
-    // 在2.5D视角中，平台是一个正方形区域
-    // 检测点到平台中心的距离是否在尺寸的一半范围内
     const dx = pointWorldX - this.worldX;
     const dy = pointWorldY - this.worldY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
     const halfSize = this.size / 2;
-
-    // 精确检测：只在平台范围内才算
-    return distance < halfSize;
+    // 使用方形占地判定（比圆形更贴合台阶实际可落脚区域）
+    return Math.abs(dx) <= halfSize && Math.abs(dy) <= halfSize;
   }
 
   /**

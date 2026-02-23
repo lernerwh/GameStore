@@ -165,8 +165,6 @@ export class GameEngine {
   }
 
   private checkLanding(): void {
-    const bottomCenter = this.player.getBottomCenter();
-
     // 检查是否开始下落
     if (!this.player.isFalling()) {
       return; // 还在上升
@@ -174,15 +172,34 @@ export class GameEngine {
 
     // 当玩家下落到平台高度时，检查是否在平台上
     if (this.player.worldZ >= 0) {
+      const prevZ = this.player.prevWorldZ;
+      const currZ = this.player.worldZ;
+      const crossedGround = prevZ < 0 && currZ >= 0;
+
+      let landingX = this.player.worldX;
+      let landingY = this.player.worldY;
+
+      if (crossedGround) {
+        const denom = currZ - prevZ;
+        if (Math.abs(denom) > 0.0001) {
+          const t = (0 - prevZ) / denom; // 触地时刻插值比例
+          landingX = this.player.prevWorldX + (this.player.worldX - this.player.prevWorldX) * t;
+          landingY = this.player.prevWorldY + (this.player.worldY - this.player.prevWorldY) * t;
+        }
+      }
+
+      this.player.worldX = landingX;
+      this.player.worldY = landingY;
+
       const nextPlatform = this.getNextPlatform();
       const currentPlatform = this.getCurrentPlatform();
 
       // 检查是否落在下一个方块上
-      if (nextPlatform && nextPlatform.containsPoint(bottomCenter.worldX, bottomCenter.worldY)) {
+      if (nextPlatform && nextPlatform.containsPoint(landingX, landingY)) {
         this.handleSuccessfulLanding(nextPlatform);
       }
       // 检查是否落在当前方块上（跳跃距离不够）
-      else if (currentPlatform && currentPlatform.containsPoint(bottomCenter.worldX, bottomCenter.worldY)) {
+      else if (currentPlatform && currentPlatform.containsPoint(landingX, landingY)) {
         this.handleSuccessfulLanding(currentPlatform);
       }
       // 棋子中心点不在任何台阶上，立即触发掉落
