@@ -239,6 +239,14 @@ struct AnimalRestaurantGame {
             .padding({ left: 10, right: 10, top: 6, bottom: 6 })
             .margin({ left: 8, right: 8 })
 
+          Text(this.isPaused ? '暂停中' : '营业中')
+            .fontSize(12)
+            .fontColor(this.isPaused ? '#d84315' : '#2e7d32')
+            .backgroundColor('rgba(255,255,255,0.82)')
+            .borderRadius(12)
+            .padding({ left: 8, right: 8, top: 6, bottom: 6 })
+            .margin({ right: 8 })
+
           Button() {
             Text('⏸️')
               .fontSize(24)
