@@ -36,7 +36,7 @@ export class GameEngine {
     // 预生成几个方块（沿45度斜向）
     for (let i = 0; i < 5; i++) {
       const lastPlatform = this.platforms[this.platforms.length - 1];
-      this.platforms.push(Platform.generateNext(lastPlatform.worldX, lastPlatform.worldY));
+      this.platforms.push(Platform.generateNext(lastPlatform.worldX, lastPlatform.worldY, lastPlatform.size));
     }
   }
 
@@ -220,7 +220,7 @@ export class GameEngine {
 
   private generateNewPlatform(): void {
     const lastPlatform = this.platforms[this.platforms.length - 1];
-    this.platforms.push(Platform.generateNext(lastPlatform.worldX, lastPlatform.worldY));
+    this.platforms.push(Platform.generateNext(lastPlatform.worldX, lastPlatform.worldY, lastPlatform.size));
 
     // 移除已经过的旧方块（保留当前方块之前的2个）
     while (this.currentPlatformIndex > 2) {

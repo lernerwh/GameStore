@@ -86,16 +86,19 @@ export class Platform {
    * @param currentWorldX 当前方块世界X坐标
    * @param currentWorldY 当前方块世界Y坐标
    */
-  static generateNext(currentWorldX: number, currentWorldY: number): Platform {
+  static generateNext(currentWorldX: number, currentWorldY: number, currentSize: number): Platform {
     // 统一方向：固定朝右上（等距投影下视觉稳定），避免左右乱切换
     const dirX = 1;
     const dirY = 0;
 
     // 间隔按尺寸约束，避免忽远忽近；再限制在全局可控区间
     const nextSize = MathUtils.randomInt(GameConstants.PLATFORM_MIN_SIZE, GameConstants.PLATFORM_MAX_SIZE);
-    const sizeDrivenGap = Math.floor(nextSize * 1.62);
-    const jitter = MathUtils.randomInt(-8, 10);
-    const rawGap = sizeDrivenGap + jitter;
+
+    // 以两个台阶尺寸计算最小安全距离，确保视觉上有明确间隙
+    const sizeBaseGap = Math.floor((currentSize + nextSize) * 1.2);
+    const safetyMargin = 34;
+    const jitter = MathUtils.randomInt(-6, 10);
+    const rawGap = sizeBaseGap + safetyMargin + jitter;
     const gap = Math.max(GameConstants.PLATFORM_GAP_MIN, Math.min(GameConstants.PLATFORM_GAP_MAX, rawGap));
 
     const newWorldX = currentWorldX + dirX * gap;
