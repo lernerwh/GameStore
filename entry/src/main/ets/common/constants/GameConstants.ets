@@ -99,9 +99,13 @@ export class GameConstants {
 
   // 生物数量配置
   static readonly CREATURE_COUNT: number = 80;
+  static readonly CREATURE_INITIAL_COUNT: number = 50;
   static readonly CREATURE_MIN_COUNT: number = 70;
   static readonly CREATURE_MAX_COUNT: number = 150;
   static readonly CREATURE_SPAWN_INTERVAL: number = 1200;
+
+  // 小豆豆配置
+  static readonly PELLET_INITIAL_COUNT: number = 180;
 
   // 摄像机配置
   static readonly CAMERA_FOLLOW_SPEED: number = 0.1;

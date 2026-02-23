@@ -12,6 +12,11 @@ export interface Point {
   y: number;
 }
 
+interface SpatialObject {
+  x: number;
+  y: number;
+}
+
 /**
  * 摄像机类 - 管理视角
  */
@@ -93,6 +98,15 @@ export class GameEngine {
   private camera: Camera = new Camera();
   private spawnTimer: number = 0;
   private pelletSpawnTimer: number = 0;
+  private playerCollisionTimer: number = 0;
+  private creatureCollisionTimer: number = 0;
+  private pelletCollisionTimer: number = 0;
+
+  private readonly PLAYER_COLLISION_INTERVAL: number = 1 / 30;
+  private readonly CREATURE_COLLISION_INTERVAL: number = 1 / 8;
+  private readonly PELLET_COLLISION_INTERVAL: number = 1 / 18;
+  private readonly CREATURE_GRID_SIZE: number = 220;
+  private readonly PELLET_GRID_SIZE: number = 120;
 
   constructor() {
     this.player = new Player();
@@ -149,13 +163,13 @@ export class GameEngine {
   }
 
   private initCreatures(): void {
-    for (let i = 0; i < GameConstants.CREATURE_COUNT; i++) {
+    for (let i = 0; i < GameConstants.CREATURE_INITIAL_COUNT; i++) {
       this.spawnCreature();
     }
   }
 
   private initPellets(): void {
-    for (let i = 0; i < GameConstants.PELLET_COUNT; i++) {
+    for (let i = 0; i < GameConstants.PELLET_INITIAL_COUNT; i++) {
       this.spawnPellet();
     }
   }
@@ -194,14 +208,24 @@ export class GameEngine {
       creature.update(deltaTime);
     }
 
-    // NPC 之间互相吞噬
-    this.checkCreatureCollisions();
+    // 分频碰撞检测，降低每帧负担
+    this.creatureCollisionTimer += deltaTime;
+    if (this.creatureCollisionTimer >= this.CREATURE_COLLISION_INTERVAL) {
+      this.checkCreatureCollisions();
+      this.creatureCollisionTimer = 0;
+    }
 
-    // 玩家/NPC 吞噬小豆豆
-    this.checkPelletCollisions();
+    this.pelletCollisionTimer += deltaTime;
+    if (this.pelletCollisionTimer >= this.PELLET_COLLISION_INTERVAL) {
+      this.checkPelletCollisions();
+      this.pelletCollisionTimer = 0;
+    }
 
-    // 检查玩家碰撞
-    this.checkPlayerCollisions();
+    this.playerCollisionTimer += deltaTime;
+    if (this.playerCollisionTimer >= this.PLAYER_COLLISION_INTERVAL) {
+      this.checkPlayerCollisions();
+      this.playerCollisionTimer = 0;
+    }
 
     // 玩家分数驱动线性体型与进化等级
     this.player.setScore(this.score);
@@ -235,8 +259,18 @@ export class GameEngine {
 
   private checkPlayerCollisions(): void {
     const playerRadius = this.player.getRadius();
-
-    for (let i = this.creatures.length - 1; i >= 0; i--) {
+    const creatureGrid = this.buildGrid(this.creatures, this.CREATURE_GRID_SIZE);
+    const candidates = this.getNearbyIndices(
+      this.player.x,
+      this.player.y,
+      playerRadius + 220,
+      this.CREATURE_GRID_SIZE,
+      creatureGrid
+    ).sort((a, b) => b - a);
+    for (const i of candidates) {
+      if (i < 0 || i >= this.creatures.length) {
+        continue;
+      }
       const creature = this.creatures[i];
       const dx = this.player.x - creature.x;
       const dy = this.player.y - creature.y;
@@ -260,13 +294,25 @@ export class GameEngine {
   }
 
   private checkCreatureCollisions(): void {
-    let i = 0;
-    while (i < this.creatures.length) {
-      let iRemoved = false;
-      let j = i + 1;
-
-      while (j < this.creatures.length) {
-        const a = this.creatures[i];
+    const removed = new Set<number>();
+    const count = this.creatures.length;
+    const creatureGrid = this.buildGrid(this.creatures, this.CREATURE_GRID_SIZE);
+    for (let i = 0; i < count; i++) {
+      if (removed.has(i)) {
+        continue;
+      }
+      const a = this.creatures[i];
+      const nearby = this.getNearbyIndices(
+        a.x,
+        a.y,
+        a.getRadius() + 220,
+        this.CREATURE_GRID_SIZE,
+        creatureGrid
+      );
+      for (const j of nearby) {
+        if (j <= i || j >= count || removed.has(j) || removed.has(i)) {
+          continue;
+        }
         const b = this.creatures[j];
         const dx = a.x - b.x;
         const dy = a.y - b.y;
@@ -278,59 +324,122 @@ export class GameEngine {
           if (aRadius >= bRadius * GameConstants.MIN_EAT_SIZE_RATIO &&
             this.canConsumeByOverlap(aRadius, bRadius, distance)) {
             a.addScore(this.getEatGainScore(b.score, GameConstants.NPC_EAT_SCORE_RATIO));
-            this.creatures.splice(j, 1);
-            continue;
+            removed.add(j);
           } else if (bRadius >= aRadius * GameConstants.MIN_EAT_SIZE_RATIO &&
             this.canConsumeByOverlap(bRadius, aRadius, distance)) {
             b.addScore(this.getEatGainScore(a.score, GameConstants.NPC_EAT_SCORE_RATIO));
-            this.creatures.splice(i, 1);
-            iRemoved = true;
+            removed.add(i);
             break;
           }
         }
-        j++;
       }
-
-      if (!iRemoved) {
-        i++;
-      }
+    }
+    if (removed.size > 0) {
+      this.creatures = this.creatures.filter((_, idx) => !removed.has(idx));
     }
   }
 
   private checkPelletCollisions(): void {
-    for (let i = this.pellets.length - 1; i >= 0; i--) {
+    const eatenPellets = new Set<number>();
+    const pelletGrid = this.buildGrid(this.pellets, this.PELLET_GRID_SIZE);
+    const playerNearbyPellets = this.getNearbyIndices(
+      this.player.x,
+      this.player.y,
+      this.player.getRadius() + 80,
+      this.PELLET_GRID_SIZE,
+      pelletGrid
+    );
+    for (const i of playerNearbyPellets) {
+      if (i < 0 || i >= this.pellets.length || eatenPellets.has(i)) {
+        continue;
+      }
       const pellet = this.pellets[i];
-      let eaten = false;
-
       const pdx = this.player.x - pellet.x;
       const pdy = this.player.y - pellet.y;
       const playerDistance = Math.sqrt(pdx * pdx + pdy * pdy);
       if (this.canConsumeByOverlap(this.player.getRadius(), pellet.radius, playerDistance)) {
         this.score += pellet.scoreValue;
-        this.pellets.splice(i, 1);
-        continue;
+        eatenPellets.add(i);
       }
+    }
 
-      for (const creature of this.creatures) {
+    for (let i = 0; i < this.creatures.length; i++) {
+      const creature = this.creatures[i];
+      const nearbyPellets = this.getNearbyIndices(
+        creature.x,
+        creature.y,
+        creature.getRadius() + 60,
+        this.PELLET_GRID_SIZE,
+        pelletGrid
+      );
+      for (const pelletIndex of nearbyPellets) {
+        if (pelletIndex < 0 || pelletIndex >= this.pellets.length || eatenPellets.has(pelletIndex)) {
+          continue;
+        }
+        const pellet = this.pellets[pelletIndex];
         const dx = creature.x - pellet.x;
         const dy = creature.y - pellet.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         if (this.canConsumeByOverlap(creature.getRadius(), pellet.radius, distance)) {
           creature.addScore(pellet.scoreValue);
-          eaten = true;
-          break;
+          eatenPellets.add(pelletIndex);
         }
       }
+    }
 
-      if (eaten) {
-        this.pellets.splice(i, 1);
-      }
+    if (eatenPellets.size > 0) {
+      this.pellets = this.pellets.filter((_, idx) => !eatenPellets.has(idx));
     }
   }
 
-  private getEatGainScore(targetScore: number, ratio: number): number {
-    const gain = Math.floor(targetScore * ratio);
-    return Math.max(1, gain);
+  private buildGrid(
+    objects: SpatialObject[],
+    cellSize: number
+  ): Map<string, number[]> {
+    const cells: Map<string, number[]> = new Map<string, number[]>();
+    for (let i = 0; i < objects.length; i++) {
+      const cellX = Math.floor(objects[i].x / cellSize);
+      const cellY = Math.floor(objects[i].y / cellSize);
+      const key = `${cellX},${cellY}`;
+      const indices = cells.get(key);
+      if (indices) {
+        indices.push(i);
+      } else {
+        cells.set(key, [i]);
+      }
+    }
+    return cells;
+  }
+
+  private getNearbyIndices(
+    x: number,
+    y: number,
+    range: number,
+    cellSize: number,
+    grid: Map<string, number[]>
+  ): number[] {
+    const minCellX = Math.floor((x - range) / cellSize);
+    const maxCellX = Math.floor((x + range) / cellSize);
+    const minCellY = Math.floor((y - range) / cellSize);
+    const maxCellY = Math.floor((y + range) / cellSize);
+    const result: number[] = [];
+    const seen = new Set<number>();
+    for (let cx = minCellX; cx <= maxCellX; cx++) {
+      for (let cy = minCellY; cy <= maxCellY; cy++) {
+        const key = `${cx},${cy}`;
+        const arr = grid.get(key);
+        if (!arr) {
+          continue;
+        }
+        for (const idx of arr) {
+          if (!seen.has(idx)) {
+            seen.add(idx);
+            result.push(idx);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   private canConsumeByOverlap(predatorRadius: number, preyRadius: number, distance: number): boolean {
@@ -360,6 +469,11 @@ export class GameEngine {
     return area1 + area2 - area3;
   }
 
+  private getEatGainScore(targetScore: number, ratio: number): number {
+    const gain = Math.floor(targetScore * ratio);
+    return Math.max(1, gain);
+  }
+
   reset(): void {
     this.player.reset();
     this.score = GameConstants.PLAYER_INITIAL_SCORE;
@@ -371,6 +485,9 @@ export class GameEngine {
     this.pellets = [];
     this.spawnTimer = 0;
     this.pelletSpawnTimer = 0;
+    this.playerCollisionTimer = 0;
+    this.creatureCollisionTimer = 0;
+    this.pelletCollisionTimer = 0;
     this.camera = new Camera();
   }
 }
