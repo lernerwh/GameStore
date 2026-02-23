@@ -220,6 +220,13 @@ struct SnakeGame {
       .justifyContent(FlexAlign.SpaceBetween)
       .margin({ bottom: 8 })
 
+      Text('操作提示：快速短滑可更灵敏转向')
+        .fontSize(12)
+        .fontColor('#86efac')
+        .width(SnakeConstants.CANVAS_WIDTH)
+        .textAlign(TextAlign.Start)
+        .margin({ bottom: 6 })
+
       Canvas(this.canvasContext)
         .width(SnakeConstants.CANVAS_WIDTH)
         .height(SnakeConstants.CANVAS_HEIGHT)
