@@ -68,12 +68,13 @@ export class Player {
    * 开始跳跃（沿45度斜向）
    * @param distance 跳跃距离（世界坐标距离）
    */
-  jump(distance: number): void {
-    // 计算XY方向的速度分量（45度角）
+  jump(distance: number, dirX: number, dirY: number): void {
     const speed = distance * GameConstants.JUMP_POWER_FACTOR;
-    // 归一化45度方向向量 (1/√2, 1/√2) ≈ (0.707, 0.707)
-    this.velocityX = speed * 0.707;
-    this.velocityY = speed * 0.707;
+    const len = Math.sqrt(dirX * dirX + dirY * dirY);
+    const nx = len > 0.0001 ? dirX / len : 0.707;
+    const ny = len > 0.0001 ? dirY / len : 0.707;
+    this.velocityX = speed * nx;
+    this.velocityY = speed * ny;
 
     // Z方向跳跃速度
     this.velocityZ = GameConstants.JUMP_INITIAL_VELOCITY_Y;

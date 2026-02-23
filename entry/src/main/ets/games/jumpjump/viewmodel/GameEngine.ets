@@ -124,8 +124,17 @@ export class GameEngine {
 
     const chargeTime = Date.now() - this.chargeStartTime;
     const jumpDistance = chargeTime;
+    const current = this.getCurrentPlatform();
+    const next = this.getNextPlatform();
+    let dirX = 0.707;
+    let dirY = 0.707;
 
-    this.player.jump(jumpDistance);
+    if (current && next) {
+      dirX = next.worldX - current.worldX;
+      dirY = next.worldY - current.worldY;
+    }
+
+    this.player.jump(jumpDistance, dirX, dirY);
     this.gameState = GameState.JUMPING;
   }
 

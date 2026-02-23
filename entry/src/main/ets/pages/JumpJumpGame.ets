@@ -14,44 +14,24 @@ struct JumpJumpGame {
   @State isPlaying: boolean = false;
   @State viewModel: GameViewModel = new GameViewModel();
   @State buttonScale: number = 1.0;
-  @State playerBreathOffset: number = 0.0;
   private renderer: GameRenderer = new GameRenderer();
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
-  private animationInterval: number | null = null;
 
   aboutToAppear(): void {
-    // 检查是否需要自动开始游戏
     const params = router.getParams() as PageParams;
     if (params?.autoStart) {
       this.startGame();
     }
-
-    // 启动玩家呼吸动画
-    this.startPlayerAnimation();
   }
 
   aboutToDisappear(): void {
     this.cleanup();
-    this.stopPlayerAnimation();
-  }
-
-  private startPlayerAnimation(): void {
-    this.animationInterval = setInterval(() => {
-      this.playerBreathOffset = Math.sin(Date.now() / 500) * 3;
-    }, 50);
-  }
-
-  private stopPlayerAnimation(): void {
-    if (this.animationInterval !== null) {
-      clearInterval(this.animationInterval);
-      this.animationInterval = null;
-    }
   }
 
   build() {
-    Column() {
+    Stack() {
       if (!this.isPlaying) {
         this.HomeView();
       } else {
@@ -64,148 +44,133 @@ struct JumpJumpGame {
 
   @Builder
   HomeView() {
-    Column() {
-      Scroll() {
-        Column() {
-          // 返回按钮
-          Row() {
-            Button() {
-              Text('← 返回')
-                .fontSize(16)
-                .fontColor('#FFFFFF')
-            }
-            .backgroundColor('rgba(0,0,0,0.2)')
-            .borderRadius(20)
-            .height(36)
-            .padding({ left: 15, right: 15 })
-            .onClick(() => { router.back(); })
-          }
-          .width('100%')
-          .padding({ left: 20, top: 50 })
-
-          Text('跳一跳')
-            .fontSize(48)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#2C2C2C')
-            .margin({ top: 50, bottom: 20 })
-
-          // 玩家图标
-          Column() {
-            Column()
-              .width(50)
-              .height(60)
-              .borderRadius(25)
-              .backgroundColor('#2C2C2C')
-              .offset({ y: this.playerBreathOffset })
-          }
-          .margin({ bottom: 40 })
-
-          Text('按住屏幕蓄力')
-            .fontSize(18)
-            .fontColor('#666666')
-            .margin({ bottom: 8 })
-
-          Text('松开后跳跃到下一个方块')
-            .fontSize(18)
-            .fontColor('#666666')
-            .margin({ bottom: 40 })
-
-          Text('技巧：长按更远，轻按更稳')
-            .fontSize(14)
-            .fontColor('#6d4c41')
-            .margin({ bottom: 10 })
-
-          Row({ space: 10 }) {
-            Text('按压蓄力')
-              .fontSize(12)
-              .fontColor('#5d4037')
-              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .backgroundColor('rgba(121,85,72,0.18)')
-              .borderRadius(14)
-            Text('落点判定')
-              .fontSize(12)
-              .fontColor('#5d4037')
-              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .backgroundColor('rgba(121,85,72,0.18)')
-              .borderRadius(14)
-          }
-          .margin({ bottom: 18 })
-
-          Button('开始游戏')
-            .fontSize(22)
-            .fontColor('#FFFFFF')
-            .backgroundColor('#4CAF50')
-            .borderRadius(30)
-            .width(180)
-            .height(50)
-            .scale({ x: this.buttonScale, y: this.buttonScale })
-            .onClick(() => {
-              this.buttonScale = 0.95;
-              setTimeout(() => {
-                this.buttonScale = 1.0;
-                this.startGame();
-              }, 150);
-            })
-        }
+    Stack() {
+      Column()
         .width('100%')
-        .padding({ bottom: 48 })
+        .height('100%')
+        .backgroundColor('#CFD1D9')
+
+      Button('← 返回')
+        .fontSize(16)
+        .fontColor('#FFFFFF')
+        .backgroundColor('rgba(0,0,0,0.2)')
+        .borderRadius(20)
+        .height(36)
+        .padding({ left: 15, right: 15 })
+        .position({ x: 20, y: 56 })
+        .onClick(() => { router.back(); })
+
+      Column({ space: 22 }) {
+        Text('跳一跳')
+          .fontSize(58)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#FFFFFF')
+          .textShadow({ radius: 2, color: 'rgba(0,0,0,0.12)', offsetX: 0, offsetY: 1 })
+
+        // 首页棋子+方块示意
+        Stack() {
+          Column()
+            .width(96)
+            .height(52)
+            .backgroundColor('#8F8F8F')
+            .position({ y: 30 })
+
+          Column()
+            .width(96)
+            .height(18)
+            .backgroundColor('#BBBBBB')
+            .position({ y: 16 })
+
+          Column()
+            .width(96)
+            .height(36)
+            .backgroundColor('#E8E8E8')
+
+          Column()
+            .width(30)
+            .height(40)
+            .backgroundColor('#2C2A49')
+            .borderRadius(15)
+            .position({ y: -12 })
+
+          Column()
+            .width(18)
+            .height(18)
+            .backgroundColor('#3F3D67')
+            .borderRadius(9)
+            .position({ y: -32 })
+        }
+        .width(130)
+        .height(120)
+
+        Button() {
+          Row({ space: 8 }) {
+            Text('▶')
+              .fontSize(18)
+              .fontColor('#66C58B')
+            Text('开始游戏')
+              .fontSize(33)
+              .fontWeight(FontWeight.Bold)
+              .fontColor('#1E1F24')
+          }
+          .justifyContent(FlexAlign.Center)
+          .width('100%')
+        }
+        .width(220)
+        .height(56)
+        .backgroundColor('#FFFFFF')
+        .borderRadius(28)
+        .scale({ x: this.buttonScale, y: this.buttonScale })
+        .shadow({ radius: 8, color: 'rgba(0,0,0,0.16)', offsetX: 0, offsetY: 3 })
+        .onClick(() => {
+          this.buttonScale = 0.96;
+          setTimeout(() => {
+            this.buttonScale = 1.0;
+            this.startGame();
+          }, 90);
+        })
       }
+      .justifyContent(FlexAlign.Center)
       .width('100%')
       .height('100%')
-      .scrollBar(BarState.Off)
-      .edgeEffect(EdgeEffect.Spring)
     }
     .width('100%')
     .height('100%')
-    .linearGradient({
-      angle: 180,
-      colors: [['#F5DEB3', 0.0], ['#DEB887', 1.0]]
-    })
   }
 
   @Builder
   GameView() {
-    Column() {
-      Row({ space: 12 }) {
-        Button('主页')
-          .fontSize(14)
-          .fontColor('#FFFFFF')
-          .backgroundColor('rgba(44,44,44,0.5)')
-          .borderRadius(16)
-          .height(34)
-          .onClick(() => {
-            this.backToHome();
-          })
-
-        Button('重开')
-          .fontSize(14)
-          .fontColor('#FFFFFF')
-          .backgroundColor('rgba(76,175,80,0.82)')
-          .borderRadius(16)
-          .height(34)
-          .onClick(() => {
-            this.restartGame();
-          })
-
-        Text(`分数 ${this.viewModel.score}`)
-          .fontSize(14)
-          .fontColor('#3e2723')
-      }
-      .width(GameConstants.CANVAS_WIDTH)
-      .justifyContent(FlexAlign.SpaceBetween)
-      .margin({ bottom: 8 })
-
+    Stack() {
       Canvas(this.canvasContext)
         .width(GameConstants.CANVAS_WIDTH)
         .height(GameConstants.CANVAS_HEIGHT)
-        .backgroundColor(GameConstants.COLOR_BACKGROUND_TOP)
         .onReady(() => { this.onCanvasReady(); })
         .onTouch((event: TouchEvent) => { this.onCanvasTouch(event); })
+
+      Row({ space: 10 }) {
+        Button('⌂')
+          .fontSize(16)
+          .fontColor('#FFFFFF')
+          .backgroundColor('rgba(22,24,31,0.45)')
+          .borderRadius(18)
+          .width(36)
+          .height(36)
+          .onClick(() => { this.backToHome(); })
+
+        Button('↻')
+          .fontSize(16)
+          .fontColor('#FFFFFF')
+          .backgroundColor('rgba(46,132,83,0.72)')
+          .borderRadius(18)
+          .width(36)
+          .height(36)
+          .onClick(() => { this.restartGame(); })
+      }
+      .position({ x: 14, y: 48 })
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor('#DEB887')
+    .backgroundColor('#CFD1D9')
   }
 
   private startGame(): void {
@@ -235,24 +200,23 @@ struct JumpJumpGame {
     const state = this.viewModel.gameState;
 
     if (state === GameState.IDLE) {
-      // 点击开始游戏
       this.viewModel.startGame();
-    } else if (state === GameState.PLAYING) {
-      // 按下开始蓄力
-      if (event.type === TouchType.Down) {
-        this.viewModel.startCharge();
-      }
-    } else if (state === GameState.CHARGING) {
-      // 松开释放跳跃
-      if (event.type === TouchType.Up) {
-        this.viewModel.releaseJump();
-      }
-    } else if (state === GameState.GAME_OVER) {
-      // 点击重新开始
-      if (event.type === TouchType.Up) {
-        this.cleanup();
-        this.isPlaying = false;
-      }
+      return;
+    }
+
+    if (state === GameState.PLAYING && event.type === TouchType.Down) {
+      this.viewModel.startCharge();
+      return;
+    }
+
+    if (state === GameState.CHARGING && event.type === TouchType.Up) {
+      this.viewModel.releaseJump();
+      return;
+    }
+
+    if (state === GameState.GAME_OVER && event.type === TouchType.Up) {
+      this.cleanup();
+      this.isPlaying = false;
     }
   }
 

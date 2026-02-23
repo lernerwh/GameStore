@@ -3,26 +3,16 @@ import { Platform } from '../model/Platform';
 import { GameState } from '../model/GameState';
 import { GameConstants } from '../model/GameConstants';
 
-/**
- * 屏幕坐标接口
- */
 interface ScreenPosition {
   x: number;
   y: number;
 }
 
-/**
- * 2.5D等距视角渲染器
- */
 export class GameRenderer {
   private canvasWidth: number = GameConstants.CANVAS_WIDTH;
   private canvasHeight: number = GameConstants.CANVAS_HEIGHT;
-
-  // 相机偏移（世界坐标）
   private cameraWorldX: number = 0;
   private cameraWorldY: number = 0;
-
-  // 动画时间
   private animTime: number = 0;
 
   render(
@@ -42,30 +32,25 @@ export class GameRenderer {
     this.clearCanvas(canvas);
     this.drawBackground(canvas);
 
-    // 按深度排序平台（Y-sorting：世界坐标Y+X）
     const sortedPlatforms = [...platforms].sort((a, b) => {
       const depthA = a.worldX + a.worldY;
       const depthB = b.worldX + b.worldY;
       return depthA - depthB;
     });
 
-    // 先渲染所有平台
     for (const platform of sortedPlatforms) {
+      this.drawPlatformShadow(canvas, platform);
       this.drawPlatform(canvas, platform);
     }
 
-    // 最后渲染玩家（确保玩家始终在最上层，不会被平台盖住）
-    this.drawPlayer(canvas, player);
+    this.drawPlayer(canvas, player, chargeProgress, gameState);
 
-    // 绘制蓄力条
     if (gameState === GameState.CHARGING) {
-      this.drawChargeBar(canvas, chargeProgress);
+      this.drawChargeHint(canvas, chargeProgress);
     }
 
-    // 绘制分数
     this.drawScore(canvas, score);
 
-    // 绘制提示
     if (gameState === GameState.IDLE) {
       this.drawStartPrompt(canvas);
     } else if (gameState === GameState.GAME_OVER) {
@@ -73,23 +58,12 @@ export class GameRenderer {
     }
   }
 
-  /**
-   * 世界坐标转屏幕坐标（等距投影）
-   * 平台沿45度对角线排列，从屏幕左下到右上
-   */
   private worldToScreen(worldX: number, worldY: number, worldZ: number = 0): ScreenPosition {
-    // 相机偏移 - 使用平均位置作为相机中心
     const cameraProgress = (this.cameraWorldX + this.cameraWorldY) / 2;
     const progress = (worldX + worldY) / 2 - cameraProgress;
-
-    // 等距投影转换
-    // progress增加时：screenX增加（向右），screenY减少（向上）
-    // worldZ在当前物理系统中：负值=跳起（屏幕向上），正值=下落
     const screenX = progress * GameConstants.ISO_SCALE_X * 2 + this.canvasWidth / 2;
-    const screenY = this.canvasHeight * 0.6 - progress * GameConstants.ISO_SCALE_Y * 2 + worldZ * GameConstants.HEIGHT_SCALE;
-
-    const pos: ScreenPosition = { x: screenX, y: screenY };
-    return pos;
+    const screenY = this.canvasHeight * 0.62 - progress * GameConstants.ISO_SCALE_Y * 2 + worldZ * GameConstants.HEIGHT_SCALE;
+    return { x: screenX, y: screenY };
   }
 
   private clearCanvas(canvas: CanvasRenderingContext2D): void {
@@ -97,39 +71,55 @@ export class GameRenderer {
   }
 
   private drawBackground(canvas: CanvasRenderingContext2D): void {
-    // 渐变背景
     const gradient = canvas.createLinearGradient(0, 0, 0, this.canvasHeight);
     gradient.addColorStop(0, GameConstants.COLOR_BACKGROUND_TOP);
     gradient.addColorStop(1, GameConstants.COLOR_BACKGROUND_BOTTOM);
     canvas.fillStyle = gradient;
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+    // 轻微氛围层，避免背景过于死板
+    const t = this.animTime / 1000;
+    for (let i = 0; i < 5; i++) {
+      const x = (i * 87 + 35) % this.canvasWidth + Math.sin(t * 0.2 + i) * 10;
+      const y = 120 + i * 120 + Math.cos(t * 0.18 + i * 0.7) * 7;
+      const g = canvas.createRadialGradient(x, y, 10, x, y, 56);
+      g.addColorStop(0, 'rgba(255,255,255,0.08)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      canvas.fillStyle = g;
+      canvas.beginPath();
+      canvas.arc(x, y, 56, 0, Math.PI * 2);
+      canvas.fill();
+    }
   }
 
-  /**
-   * 绘制2.5D立体平台（等距视角方块）
-   */
-  private drawPlatform(canvas: CanvasRenderingContext2D, platform: Platform): void {
-    // 获取平台中心的屏幕坐标
+  private drawPlatformShadow(canvas: CanvasRenderingContext2D, platform: Platform): void {
     const center = this.worldToScreen(platform.worldX, platform.worldY, platform.worldZ);
-
     const size = platform.size;
-    const halfW = size * 0.6;  // 等距视角的宽度
-    const halfH = size * 0.35; // 等距视角的高度
+    const shadowW = size * 0.62;
+    const shadowH = size * 0.2;
+
+    canvas.fillStyle = 'rgba(0,0,0,0.18)';
+    canvas.beginPath();
+    canvas.ellipse(center.x - shadowW * 0.35, center.y + GameConstants.PLATFORM_DEPTH + 8, shadowW, shadowH, -0.18, 0, Math.PI * 2);
+    canvas.fill();
+  }
+
+  private drawPlatform(canvas: CanvasRenderingContext2D, platform: Platform): void {
+    const center = this.worldToScreen(platform.worldX, platform.worldY, platform.worldZ);
+    const size = platform.size;
+    const halfW = size * 0.6;
+    const halfH = size * 0.34;
     const depth = GameConstants.PLATFORM_DEPTH;
 
-    // 顶面四个顶点（平行四边形）
-    // 上、右、下、左
     const top: ScreenPosition = { x: center.x, y: center.y - halfH };
     const right: ScreenPosition = { x: center.x + halfW, y: center.y };
     const bottom: ScreenPosition = { x: center.x, y: center.y + halfH };
     const left: ScreenPosition = { x: center.x - halfW, y: center.y };
 
-    // 底部顶点（用于画侧面）
     const rightBottom: ScreenPosition = { x: right.x, y: right.y + depth };
     const bottomBottom: ScreenPosition = { x: bottom.x, y: bottom.y + depth };
     const leftBottom: ScreenPosition = { x: left.x, y: left.y + depth };
 
-    // 绘制右侧面（较暗色调）- 增强效果
     canvas.fillStyle = platform.getDarkColor();
     canvas.beginPath();
     canvas.moveTo(right.x, right.y);
@@ -139,17 +129,6 @@ export class GameRenderer {
     canvas.closePath();
     canvas.fill();
 
-    // 右侧面阴影
-    canvas.fillStyle = 'rgba(0, 0, 0, 0.08)';
-    canvas.beginPath();
-    canvas.moveTo(right.x, right.y);
-    canvas.lineTo(rightBottom.x, rightBottom.y);
-    canvas.lineTo(rightBottom.x - 2, rightBottom.y + 2);
-    canvas.lineTo(right.x - 2, right.y + 2);
-    canvas.closePath();
-    canvas.fill();
-
-    // 绘制左侧面（中等色调）- 增强效果
     canvas.fillStyle = platform.getMediumColor();
     canvas.beginPath();
     canvas.moveTo(bottom.x, bottom.y);
@@ -159,17 +138,6 @@ export class GameRenderer {
     canvas.closePath();
     canvas.fill();
 
-    // 左侧面阴影
-    canvas.fillStyle = 'rgba(0, 0, 0, 0.08)';
-    canvas.beginPath();
-    canvas.moveTo(left.x, left.y);
-    canvas.lineTo(leftBottom.x, leftBottom.y);
-    canvas.lineTo(leftBottom.x - 2, leftBottom.y + 2);
-    canvas.lineTo(left.x - 2, left.y + 2);
-    canvas.closePath();
-    canvas.fill();
-
-    // 绘制顶面（平行四边形，亮色）
     canvas.fillStyle = platform.getColor();
     canvas.beginPath();
     canvas.moveTo(top.x, top.y);
@@ -179,18 +147,7 @@ export class GameRenderer {
     canvas.closePath();
     canvas.fill();
 
-    // 顶面高光（增强效果）
-    canvas.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    canvas.beginPath();
-    canvas.moveTo(top.x, top.y);
-    canvas.lineTo(right.x, right.y);
-    canvas.lineTo(center.x, center.y);
-    canvas.lineTo(left.x, left.y);
-    canvas.closePath();
-    canvas.fill();
-
-    // 顶面边框
-    canvas.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    canvas.strokeStyle = 'rgba(255,255,255,0.3)';
     canvas.lineWidth = 1;
     canvas.beginPath();
     canvas.moveTo(top.x, top.y);
@@ -199,196 +156,134 @@ export class GameRenderer {
     canvas.lineTo(left.x, left.y);
     canvas.closePath();
     canvas.stroke();
+
+    // 顶面细节块（贴图感）
+    canvas.fillStyle = 'rgba(255,255,255,0.16)';
+    canvas.beginPath();
+    canvas.moveTo(center.x, center.y - halfH * 0.45);
+    canvas.lineTo(center.x + halfW * 0.35, center.y - halfH * 0.02);
+    canvas.lineTo(center.x, center.y + halfH * 0.3);
+    canvas.lineTo(center.x - halfW * 0.35, center.y - halfH * 0.02);
+    canvas.closePath();
+    canvas.fill();
   }
 
-  /**
-   * 绘制2.5D立体玩家
-   */
-  private drawPlayer(canvas: CanvasRenderingContext2D, player: Player): void {
-    // 玩家底部位置（世界坐标）
+  private drawPlayer(canvas: CanvasRenderingContext2D, player: Player, chargeProgress: number, gameState: GameState): void {
     const bottomPos = this.worldToScreen(player.worldX, player.worldY, player.worldZ);
-
-    // 玩家高度对应的屏幕偏移
     const heightOffset = player.height * GameConstants.HEIGHT_SCALE * 0.8;
+    const squeeze = gameState === GameState.CHARGING ? chargeProgress * 0.22 : 0;
 
-    // 压缩效果（根据跳跃速度）
-    const compressionFactor = Math.min(0.15, Math.abs(player.velocityZ) * 0.01);
-    const isCompressed = player.velocityZ > 0; // 上升时压缩
-
-    const bodyWidth = player.width * (isCompressed ? 1 + compressionFactor : 1 - compressionFactor);
-    const bodyHeight = heightOffset * (isCompressed ? 1 - compressionFactor : 1 + compressionFactor);
-
-    // 绘制阴影（椭圆形，在地面上）- 跳跃时阴影变小
-    const shadowScale = player.worldZ > 0 ? 0.5 : 0.7;
-    canvas.fillStyle = GameConstants.COLOR_PLAYER_SHADOW;
-    canvas.beginPath();
-    canvas.ellipse(bottomPos.x, bottomPos.y + 3, player.width / 2 * shadowScale, player.width / 4 * shadowScale, 0, 0, Math.PI * 2);
-    canvas.fill();
-
-    // 玩家身体顶部位置
+    const bodyWidth = player.width * (1 + squeeze * 0.45);
+    const bodyHeight = heightOffset * (1 - squeeze * 0.3);
     const topY = bottomPos.y - bodyHeight;
 
-    // 绘制圆柱体身体（用渐变模拟光照）- 增强效果
-    const bodyGradient = canvas.createLinearGradient(
-      bottomPos.x - bodyWidth / 2, bottomPos.y,
-      bottomPos.x + bodyWidth / 2, bottomPos.y
-    );
-    bodyGradient.addColorStop(0, '#1A1A1A');
-    bodyGradient.addColorStop(0.25, GameConstants.COLOR_PLAYER);
-    bodyGradient.addColorStop(0.5, GameConstants.COLOR_PLAYER_TOP);
-    bodyGradient.addColorStop(0.75, GameConstants.COLOR_PLAYER);
-    bodyGradient.addColorStop(1, '#1A1A1A');
-
-    // 底部椭圆
-    canvas.fillStyle = GameConstants.COLOR_PLAYER;
+    const shadowScale = player.worldZ > 0 ? 0.48 : 0.78;
+    canvas.fillStyle = GameConstants.COLOR_PLAYER_SHADOW;
     canvas.beginPath();
-    canvas.ellipse(bottomPos.x, bottomPos.y, bodyWidth / 2, bodyWidth / 4, 0, 0, Math.PI * 2);
+    canvas.ellipse(bottomPos.x - 10, bottomPos.y + 5, player.width * shadowScale, player.width * 0.35 * shadowScale, -0.2, 0, Math.PI * 2);
     canvas.fill();
 
-    // 身体侧面
+    // 棋子主体（紫色）
+    const bodyGradient = canvas.createLinearGradient(bottomPos.x - bodyWidth / 2, bottomPos.y, bottomPos.x + bodyWidth / 2, bottomPos.y);
+    bodyGradient.addColorStop(0, '#1A1730');
+    bodyGradient.addColorStop(0.4, GameConstants.COLOR_PLAYER);
+    bodyGradient.addColorStop(0.75, GameConstants.COLOR_PLAYER_TOP);
+    bodyGradient.addColorStop(1, '#16142A');
+
     canvas.fillStyle = bodyGradient;
     canvas.beginPath();
-    canvas.moveTo(bottomPos.x - bodyWidth / 2, bottomPos.y);
-    canvas.lineTo(bottomPos.x - bodyWidth / 2, topY + bodyWidth / 4);
-    canvas.ellipse(bottomPos.x, topY + bodyWidth / 4, bodyWidth / 2, bodyWidth / 4, 0, Math.PI, 0, true);
-    canvas.lineTo(bottomPos.x + bodyWidth / 2, bottomPos.y);
-    canvas.ellipse(bottomPos.x, bottomPos.y, bodyWidth / 2, bodyWidth / 4, 0, 0, Math.PI, true);
+    canvas.moveTo(bottomPos.x - bodyWidth * 0.33, bottomPos.y);
+    canvas.quadraticCurveTo(bottomPos.x - bodyWidth * 0.44, bottomPos.y - bodyHeight * 0.25, bottomPos.x - bodyWidth * 0.2, topY + bodyWidth * 0.22);
+    canvas.quadraticCurveTo(bottomPos.x, topY - bodyHeight * 0.05, bottomPos.x + bodyWidth * 0.2, topY + bodyWidth * 0.22);
+    canvas.quadraticCurveTo(bottomPos.x + bodyWidth * 0.44, bottomPos.y - bodyHeight * 0.25, bottomPos.x + bodyWidth * 0.33, bottomPos.y);
     canvas.closePath();
     canvas.fill();
 
-    // 顶部椭圆
-    canvas.fillStyle = GameConstants.COLOR_PLAYER_TOP;
+    canvas.fillStyle = '#4E4B81';
     canvas.beginPath();
-    canvas.ellipse(bottomPos.x, topY + bodyWidth / 4, bodyWidth / 2, bodyWidth / 4, 0, 0, Math.PI * 2);
+    canvas.ellipse(bottomPos.x, topY + bodyWidth * 0.2, bodyWidth * 0.2, bodyWidth * 0.13, 0, 0, Math.PI * 2);
     canvas.fill();
 
-    // 顶部高光（增强效果）
-    canvas.fillStyle = GameConstants.COLOR_PLAYER_HIGHLIGHT;
+    // 棋子头
+    canvas.fillStyle = '#2E2B52';
     canvas.beginPath();
-    canvas.ellipse(
-      bottomPos.x - bodyWidth / 6,
-      topY + bodyWidth / 4 - 3,
-      bodyWidth / 4,
-      bodyWidth / 6,
-      -0.3, 0, Math.PI * 2
-    );
+    canvas.arc(bottomPos.x, topY - bodyWidth * 0.1, bodyWidth * 0.16, 0, Math.PI * 2);
     canvas.fill();
 
-    // 眼睛（两个小圆点）- 在身体上部
-    const eyeY = topY + bodyWidth / 3;
-    const eyeSpacing = 5;
-
-    // 眼白
-    canvas.fillStyle = '#FFFFFF';
+    canvas.fillStyle = 'rgba(255,255,255,0.28)';
     canvas.beginPath();
-    canvas.arc(bottomPos.x - eyeSpacing, eyeY, 3.5, 0, Math.PI * 2);
-    canvas.arc(bottomPos.x + eyeSpacing, eyeY, 3.5, 0, Math.PI * 2);
+    canvas.arc(bottomPos.x - bodyWidth * 0.05, topY - bodyWidth * 0.14, bodyWidth * 0.05, 0, Math.PI * 2);
     canvas.fill();
 
-    // 瞳孔
-    canvas.fillStyle = '#000000';
-    canvas.beginPath();
-    canvas.arc(bottomPos.x - eyeSpacing, eyeY, 2, 0, Math.PI * 2);
-    canvas.arc(bottomPos.x + eyeSpacing, eyeY, 2, 0, Math.PI * 2);
-    canvas.fill();
+    if (gameState === GameState.CHARGING) {
+      this.drawChargeRipple(canvas, bottomPos.x, bottomPos.y + 1, chargeProgress);
+    }
   }
 
-  private drawChargeBar(canvas: CanvasRenderingContext2D, progress: number): void {
-    const barWidth = 120;
-    const barHeight = 14;
-    const x = (this.canvasWidth - barWidth) / 2;
-    const y = this.canvasHeight - 90;
+  private drawChargeRipple(canvas: CanvasRenderingContext2D, x: number, y: number, progress: number): void {
+    const radius = 20 + progress * 26;
+    canvas.strokeStyle = `rgba(255,255,255,${0.28 + progress * 0.2})`;
+    canvas.lineWidth = 2;
+    canvas.beginPath();
+    canvas.arc(x, y, radius, 0, Math.PI * 2);
+    canvas.stroke();
 
-    // 背景（增强）
+    canvas.strokeStyle = 'rgba(255,255,255,0.18)';
+    canvas.beginPath();
+    canvas.arc(x, y, radius + 10, 0, Math.PI * 2);
+    canvas.stroke();
+  }
+
+  private drawChargeHint(canvas: CanvasRenderingContext2D, progress: number): void {
+    const barWidth = 138;
+    const barHeight = 11;
+    const x = (this.canvasWidth - barWidth) / 2;
+    const y = this.canvasHeight - 58;
+
     canvas.fillStyle = GameConstants.COLOR_CHARGE_BAR_BG;
     canvas.beginPath();
-    canvas.roundRect(x, y, barWidth, barHeight, 7);
+    canvas.roundRect(x, y, barWidth, barHeight, 6);
     canvas.fill();
 
-    // 填充（增强渐变）
     const fillGradient = canvas.createLinearGradient(x, y, x + barWidth, y);
-    fillGradient.addColorStop(0, '#4CAF50');
-    fillGradient.addColorStop(0.5, '#8BC34A');
-    fillGradient.addColorStop(1, '#FFD700');
+    fillGradient.addColorStop(0, '#77C891');
+    fillGradient.addColorStop(1, '#CFEF9C');
     canvas.fillStyle = fillGradient;
     canvas.beginPath();
-    canvas.roundRect(x, y, barWidth * progress, barHeight, 7);
+    canvas.roundRect(x, y, barWidth * progress, barHeight, 6);
     canvas.fill();
-
-    // 边框（增强）
-    canvas.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-    canvas.lineWidth = 2.5;
-    canvas.beginPath();
-    canvas.roundRect(x, y, barWidth, barHeight, 7);
-    canvas.stroke();
-
-    // 添加发光效果
-    const glowAlpha = 0.3 + Math.sin(this.animTime / 100) * 0.15;
-    canvas.strokeStyle = `rgba(255, 215, 0, ${glowAlpha})`;
-    canvas.lineWidth = 3;
-    canvas.beginPath();
-    canvas.roundRect(x - 1, y - 1, barWidth + 2, barHeight + 2, 8);
-    canvas.stroke();
   }
 
   private drawScore(canvas: CanvasRenderingContext2D, score: number): void {
-    canvas.shadowColor = 'rgba(0, 0, 0, 0.7)';
-    canvas.shadowBlur = 8;
-    canvas.shadowOffsetX = 3;
-    canvas.shadowOffsetY = 3;
-    canvas.fillStyle = GameConstants.COLOR_SCORE_SHADOW;
-    canvas.font = 'bold 60px sans-serif';
-    canvas.textAlign = 'center';
-    canvas.fillText(score.toString(), this.canvasWidth / 2 + 2, 67);
-
-    canvas.fillStyle = '#FFFFFF';
-    canvas.fillText(score.toString(), this.canvasWidth / 2, 65);
-    canvas.shadowColor = 'transparent';
-    canvas.shadowBlur = 0;
+    canvas.fillStyle = 'rgba(32, 32, 36, 0.82)';
+    canvas.font = 'bold 42px sans-serif';
+    canvas.textAlign = 'left';
+    canvas.fillText(score.toString(), 24, 88);
   }
 
   private drawStartPrompt(canvas: CanvasRenderingContext2D): void {
-    canvas.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    canvas.fillStyle = 'rgba(0, 0, 0, 0.18)';
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-    // 添加脉冲动画
-    const pulse = Math.sin(this.animTime / 300) * 0.1 + 1;
-
-    canvas.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    canvas.shadowBlur = 6;
-    canvas.shadowOffsetX = 3;
-    canvas.shadowOffsetY = 3;
-    canvas.fillStyle = '#FFFFFF';
-    canvas.font = `bold ${Math.floor(60 * pulse)}px sans-serif`;
+    canvas.fillStyle = 'rgba(255,255,255,0.96)';
+    canvas.font = 'bold 34px sans-serif';
     canvas.textAlign = 'center';
-    canvas.fillText('跳一跳', this.canvasWidth / 2, this.canvasHeight / 2 - 70);
-    canvas.shadowColor = 'transparent';
-    canvas.shadowBlur = 0;
-
-    canvas.font = '38px sans-serif';
-    canvas.fillText('按住蓄力，松开跳跃', this.canvasWidth / 2, this.canvasHeight / 2 + 5);
-    canvas.fillText('点击屏幕开始', this.canvasWidth / 2, this.canvasHeight / 2 + 55);
+    canvas.fillText('点击屏幕开始', this.canvasWidth / 2, this.canvasHeight * 0.54);
   }
 
   private drawGameOver(canvas: CanvasRenderingContext2D, score: number): void {
-    canvas.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    canvas.fillStyle = 'rgba(16, 16, 20, 0.42)';
     canvas.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-    canvas.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    canvas.shadowBlur = 6;
-    canvas.shadowOffsetX = 3;
-    canvas.shadowOffsetY = 3;
-    canvas.fillStyle = '#FFFFFF';
-    canvas.font = 'bold 60px sans-serif';
+    canvas.fillStyle = 'rgba(255,255,255,0.96)';
     canvas.textAlign = 'center';
-    canvas.fillText('游戏结束', this.canvasWidth / 2, this.canvasHeight / 2 - 80);
-    canvas.shadowColor = 'transparent';
-    canvas.shadowBlur = 0;
+    canvas.font = 'bold 42px sans-serif';
+    canvas.fillText('游戏结束', this.canvasWidth / 2, this.canvasHeight / 2 - 56);
 
-    canvas.font = 'bold 48px sans-serif';
-    canvas.fillText('得分: ' + score, this.canvasWidth / 2, this.canvasHeight / 2 + 10);
+    canvas.font = 'bold 28px sans-serif';
+    canvas.fillText(`得分 ${score}`, this.canvasWidth / 2, this.canvasHeight / 2 + 2);
 
-    canvas.font = '40px sans-serif';
-    canvas.fillText('点击重新开始', this.canvasWidth / 2, this.canvasHeight / 2 + 90);
+    canvas.font = '24px sans-serif';
+    canvas.fillText('点击任意位置返回', this.canvasWidth / 2, this.canvasHeight / 2 + 52);
   }
 }

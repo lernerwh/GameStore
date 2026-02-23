@@ -1,6 +1,11 @@
 import { GameConstants } from './GameConstants';
 import { Rect, MathUtils } from './MathUtils';
 
+interface Direction {
+  x: number;
+  y: number;
+}
+
 /**
  * 平台/方块实体类 - 支持2.5D世界坐标
  */
@@ -88,11 +93,14 @@ export class Platform {
    */
   static generateNext(currentWorldX: number, currentWorldY: number): Platform {
     const gap = MathUtils.randomInt(GameConstants.PLATFORM_GAP_MIN, GameConstants.PLATFORM_GAP_MAX);
-
-    // 沿45度角方向生成（x和y同时增加）
-    const newWorldX = currentWorldX + gap;
-    const newWorldY = currentWorldY + gap;
-
+    const directions: Direction[] = [
+      { x: 1, y: 1 },
+      { x: 1, y: -1 },
+      { x: -1, y: 1 }
+    ];
+    const d = directions[MathUtils.randomInt(0, directions.length - 1)];
+    const newWorldX = currentWorldX + d.x * gap;
+    const newWorldY = currentWorldY + d.y * gap;
     return new Platform(newWorldX, newWorldY);
   }
 }
