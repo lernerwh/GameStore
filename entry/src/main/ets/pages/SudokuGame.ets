@@ -13,11 +13,14 @@ struct SudokuGame {
   @State isPlaying: boolean = false;
   @State viewModel: SudokuViewModel = new SudokuViewModel();
   @State selectedDifficulty: number = 1; // 0=简单, 1=中等, 2=困难
+  @State buttonScale: number = 1.0;
+  @State iconHighlightAlpha: number = 0.3;
 
   private renderer: SudokuRenderer = new SudokuRenderer();
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private canvasContext: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
   private renderInterval: number | null = null;
+  private animationInterval: number | null = null;
 
   aboutToAppear(): void {
     // 检查是否需要自动开始游戏
@@ -25,10 +28,27 @@ struct SudokuGame {
     if (params?.autoStart) {
       this.startGame();
     }
+
+    // 启动图标高亮动画
+    this.startIconAnimation();
   }
 
   aboutToDisappear(): void {
     this.cleanup();
+    this.stopIconAnimation();
+  }
+
+  private startIconAnimation(): void {
+    this.animationInterval = setInterval(() => {
+      this.iconHighlightAlpha = 0.3 + Math.sin(Date.now() / 500) * 0.2;
+    }, 50);
+  }
+
+  private stopIconAnimation(): void {
+    if (this.animationInterval !== null) {
+      clearInterval(this.animationInterval);
+      this.animationInterval = null;
+    }
   }
 
   build() {
@@ -75,6 +95,22 @@ struct SudokuGame {
             .fontColor('#666666')
             .margin({ bottom: 30 })
 
+          Row({ space: 10 }) {
+            Text('逻辑解谜')
+              .fontSize(12)
+              .fontColor('#0d47a1')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(25,118,210,0.14)')
+              .borderRadius(14)
+            Text('支持笔记')
+              .fontSize(12)
+              .fontColor('#0d47a1')
+              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+              .backgroundColor('rgba(25,118,210,0.14)')
+              .borderRadius(14)
+          }
+          .margin({ bottom: 20 })
+
           // 数独图标
           Column() {
             Row() {
@@ -98,6 +134,7 @@ struct SudokuGame {
           .justifyContent(FlexAlign.Center)
           .borderRadius(10)
           .border({ width: 2, color: '#1976D2' })
+          .backgroundColor(`rgba(25, 118, 210, ${this.iconHighlightAlpha})`)
           .margin({ bottom: 40 })
 
           // 难度选择
@@ -167,6 +204,35 @@ struct SudokuGame {
   @Builder
   GameView() {
     Column() {
+      Row({ space: 12 }) {
+        Button('主页')
+          .fontSize(14)
+          .fontColor('#FFFFFF')
+          .backgroundColor('#5c6bc0')
+          .borderRadius(16)
+          .height(34)
+          .onClick(() => {
+            this.backToHome();
+          })
+
+        Button('新局')
+          .fontSize(14)
+          .fontColor('#FFFFFF')
+          .backgroundColor('#1e88e5')
+          .borderRadius(16)
+          .height(34)
+          .onClick(() => {
+            this.restartGame();
+          })
+
+        Text(`错误 ${this.viewModel.mistakes}/3`)
+          .fontSize(14)
+          .fontColor('#0d47a1')
+      }
+      .width(SudokuConstants.CANVAS_WIDTH)
+      .justifyContent(FlexAlign.SpaceBetween)
+      .margin({ bottom: 8 })
+
       Canvas(this.canvasContext)
         .width(SudokuConstants.CANVAS_WIDTH)
         .height(SudokuConstants.CANVAS_HEIGHT)
@@ -226,10 +292,23 @@ struct SudokuGame {
 
   private startGame(): void {
     this.isPlaying = true;
-    this.viewModel = new SudokuViewModel();
+    this.startNewSudokuSession();
+  }
 
+  private startNewSudokuSession(): void {
+    this.viewModel = new SudokuViewModel();
     const difficulties = [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD];
     this.viewModel.startNewGame(difficulties[this.selectedDifficulty]);
+  }
+
+  private restartGame(): void {
+    this.startNewSudokuSession();
+  }
+
+  private backToHome(): void {
+    this.cleanup();
+    this.isPlaying = false;
+    this.viewModel = new SudokuViewModel();
   }
 
   private onCanvasReady(): void {
