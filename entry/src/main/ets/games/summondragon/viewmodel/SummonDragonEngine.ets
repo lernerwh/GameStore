@@ -38,6 +38,7 @@ export class SummonCamera {
 
   private targetX: number = 0;
   private targetY: number = 0;
+  private targetZoom: number = 1;
 
   constructor(viewportWidth: number, viewportHeight: number, worldWidth: number, worldHeight: number) {
     this.viewportWidth = viewportWidth;
@@ -46,25 +47,33 @@ export class SummonCamera {
     this.worldHeight = worldHeight;
   }
 
-  follow(targetX: number, targetY: number): void {
-    this.targetX = targetX - this.viewportWidth / 2;
-    this.targetY = targetY - this.viewportHeight / 2;
+  setZoom(zoom: number): void {
+    this.targetZoom = Math.max(0.2, Math.min(1, zoom));
+  }
 
-    this.targetX = Math.max(0, Math.min(this.targetX, this.worldWidth - this.viewportWidth));
-    this.targetY = Math.max(0, Math.min(this.targetY, this.worldHeight - this.viewportHeight));
+  follow(targetX: number, targetY: number): void {
+    const visibleWidth = this.viewportWidth / this.zoom;
+    const visibleHeight = this.viewportHeight / this.zoom;
+
+    this.targetX = targetX - visibleWidth / 2;
+    this.targetY = targetY - visibleHeight / 2;
+
+    this.targetX = Math.max(0, Math.min(this.targetX, this.worldWidth - visibleWidth));
+    this.targetY = Math.max(0, Math.min(this.targetY, this.worldHeight - visibleHeight));
   }
 
   update(): void {
+    this.zoom += (this.targetZoom - this.zoom) * 0.08;
     this.x += (this.targetX - this.x) * 0.12;
     this.y += (this.targetY - this.y) * 0.12;
   }
 
   worldToScreen(worldX: number, worldY: number): SummonPoint {
-    return { x: worldX - this.x, y: worldY - this.y };
+    return { x: (worldX - this.x) * this.zoom, y: (worldY - this.y) * this.zoom };
   }
 
   screenToWorld(screenX: number, screenY: number): SummonPoint {
-    return { x: screenX + this.x, y: screenY + this.y };
+    return { x: screenX / this.zoom + this.x, y: screenY / this.zoom + this.y };
   }
 }
 
@@ -216,6 +225,7 @@ export class SummonDragonEngine {
       this.ensureNpcCount();
     }
 
+    this.camera.setZoom(this.getAutoCameraZoom());
     this.camera.follow(this.playerX, this.playerY);
     this.camera.update();
   }
@@ -545,5 +555,14 @@ export class SummonDragonEngine {
       return 6 + Math.floor(Math.random() * 2);
     }
     return 8 + Math.floor(Math.random() * 2);
+  }
+
+  // 视野规则：等级越高、队伍规模越大，镜头越拉远（zoom 越小）。
+  private getAutoCameraZoom(): number {
+    const levelProgress = this.playerLevel / (this.LEVEL_RADII.length - 1);
+    const groupProgress = Math.min(1, this.getAbsorbedCount() / 18);
+    const progress = Math.max(levelProgress, levelProgress * 0.7 + groupProgress * 0.3);
+    const minZoom = 0.3;
+    return 1 - progress * (1 - minZoom);
   }
 }

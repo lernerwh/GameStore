@@ -102,29 +102,31 @@ export class SummonDragonRenderer {
     camera: SummonCamera
   ): void {
     const s = camera.worldToScreen(playerPos.x, playerPos.y);
-    this.drawActorByLevel(canvas, s.x, s.y, playerLevel, playerRadius * 2.25, true);
+    this.drawActorByLevel(canvas, s.x, s.y, playerLevel, playerRadius * 2.25 * camera.zoom, true);
   }
 
   private drawNpcs(canvas: CanvasRenderingContext2D, npcs: SummonNpc[], camera: SummonCamera): void {
+    const margin = 120;
     for (let i = 0; i < npcs.length; i++) {
       const n = npcs[i];
       const s = camera.worldToScreen(n.x, n.y);
-      if (s.x < -60 || s.x > this.canvasWidth + 60 || s.y < -60 || s.y > this.canvasHeight + 60) {
+      if (s.x < -margin || s.x > this.canvasWidth + margin || s.y < -margin || s.y > this.canvasHeight + margin) {
         continue;
       }
-      const size = this.levelToSize(n.level);
+      const size = this.levelToSize(n.level) * camera.zoom;
       this.drawActorByLevel(canvas, s.x, s.y, n.level, size, false);
     }
   }
 
   private drawCompanions(canvas: CanvasRenderingContext2D, companions: SummonRenderCompanion[], camera: SummonCamera): void {
+    const margin = 120;
     for (let i = 0; i < companions.length; i++) {
       const c = companions[i];
       const s = camera.worldToScreen(c.x, c.y);
-      if (s.x < -60 || s.x > this.canvasWidth + 60 || s.y < -60 || s.y > this.canvasHeight + 60) {
+      if (s.x < -margin || s.x > this.canvasWidth + margin || s.y < -margin || s.y > this.canvasHeight + margin) {
         continue;
       }
-      const size = this.levelToSize(c.level) * 0.92;
+      const size = this.levelToSize(c.level) * 0.92 * camera.zoom;
       this.drawActorByLevel(canvas, s.x, s.y, c.level, size, false);
     }
   }

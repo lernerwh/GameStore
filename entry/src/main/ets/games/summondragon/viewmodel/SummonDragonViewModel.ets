@@ -67,7 +67,8 @@ export class SummonDragonViewModel {
     const nx = deltaX / len;
     const ny = deltaY / len;
     const clamped = Math.max(0, Math.min(1, strength));
-    const targetOffset = 130 + clamped * 420;
+    const zoomComp = 1 / Math.max(0.35, this.engine.getCamera().zoom);
+    const targetOffset = (130 + clamped * 420) * zoomComp;
     const p = this.engine.getPlayerPosition();
 
     this.engine.setPlayerTargetWorld(
