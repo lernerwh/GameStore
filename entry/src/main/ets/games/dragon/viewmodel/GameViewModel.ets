@@ -48,8 +48,9 @@ export class GameViewModel {
 
   setPlayerTarget(screenX: number, screenY: number): void {
     const camera = this.getCamera();
-    const worldX = screenX + camera.x;
-    const worldY = screenY + camera.y;
+    const worldPoint = camera.screenToWorld(screenX, screenY);
+    const worldX = worldPoint.x;
+    const worldY = worldPoint.y;
     this.engine.setPlayerTarget(worldX, worldY);
   }
 
