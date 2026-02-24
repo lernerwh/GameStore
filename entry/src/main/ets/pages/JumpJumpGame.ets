@@ -145,7 +145,6 @@ struct JumpJumpGame {
         .width(GameConstants.CANVAS_WIDTH)
         .height(GameConstants.CANVAS_HEIGHT)
         .onReady(() => { this.onCanvasReady(); })
-        .onTouch((event: TouchEvent) => { this.onCanvasTouch(event); })
 
       Column() {
         Row({ space: 10 }) {
@@ -177,6 +176,7 @@ struct JumpJumpGame {
     .width('100%')
     .height('100%')
     .backgroundColor('#CFD1D9')
+    .onTouch((event: TouchEvent) => { this.onCanvasTouch(event); })
   }
 
   private startGame(): void {
@@ -203,9 +203,19 @@ struct JumpJumpGame {
   }
 
   private onCanvasTouch(event: TouchEvent): void {
+    if (event.touches.length === 0) {
+      return;
+    }
+    const touch = event.touches[0];
+
+    // 避免与左上角控制按钮区域冲突
+    if (touch.x <= 132 && touch.y <= 120) {
+      return;
+    }
+
     const state = this.viewModel.gameState;
 
-    if (state === GameState.IDLE) {
+    if (state === GameState.IDLE && event.type === TouchType.Up) {
       this.viewModel.startGame();
       return;
     }
