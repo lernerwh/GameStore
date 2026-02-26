@@ -97,6 +97,16 @@ export class GameCatalog {
       page: 'pages/SnakeGame',
       enabled: true
     },
+    {
+      id: 'redalertlite',
+      name: '红警 Lite',
+      description: 'RTS 风格体验，正在开发中',
+      icon: '⚔️',
+      color: '#c0392b',
+      gradient: ['#1d1f2d', '#62171f'],
+      page: 'pages/RedAlertLiteGame',
+      enabled: true
+    }
   ];
 
   static getGames(): GameInfo[] {

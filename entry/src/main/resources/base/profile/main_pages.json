@@ -8,6 +8,7 @@
     "pages/JumpJumpGame",
     "pages/SudokuGame",
     "pages/Game2048",
-    "pages/SummonDragonGame"
+    "pages/SummonDragonGame",
+    "pages/RedAlertLiteGame"
   ]
 }
