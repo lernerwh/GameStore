@@ -4,6 +4,7 @@
  */
 
 import { BuildingManager } from './BuildingManager';
+import { Building } from './Building';
 import { BuildingType, BuildingState } from './GameConstants';
 
 // 敌人AI配置
@@ -66,7 +67,7 @@ export class EnemyAI {
     }
 
     // 按优先级选择目标
-    let target = this.selectTarget(playerBuildings);
+    const target = this.selectTarget(playerBuildings);
 
     if (target) {
       // 对建筑造成伤害
@@ -76,7 +77,7 @@ export class EnemyAI {
   }
 
   // 选择攻击目标
-  private selectTarget(buildings: any[]): any | null {
+  private selectTarget(buildings: Building[]): Building | null {
     if (buildings.length === 0) return null;
 
     // 优先攻击特定类型的建筑
